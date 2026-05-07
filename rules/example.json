@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "description": "Example rule set for pid-engine"
+  },
+  "rules": [
+    {
+      "name": "greet",
+      "type": "function",
+      "params": { "name": "string" },
+      "body": [
+        { "op": "format", "args": ["t", "\"Hello, ~A!~%\"", "name"] }
+      ]
+    },
+    {
+      "name": "add",
+      "type": "function",
+      "params": { "a": "number", "b": "number" },
+      "body": [
+        { "op": "+", "args": ["a", "b"] }
+      ]
+    }
+  ]
+}

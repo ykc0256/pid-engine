@@ -1,0 +1,1265 @@
+{
+  "schema_version": "PID_TEST_V2",
+  "layout_rules": {
+    "process_direction": "LEFT_TO_RIGHT",
+    "structure_position": "LEFT",
+    "machine_position": "RIGHT_OF_STRUCTURE",
+    "lane_order": [
+      "CHEMICAL",
+      "AIR",
+      "RAW_WATER",
+      "SLUDGE"
+    ],
+    "default_line_class": "WATER",
+    "default_size": "100A"
+  },
+  "processes": [
+    {
+      "id": "PROC_001",
+      "name": "공정_001",
+      "order": 1
+    },
+    {
+      "id": "PROC_002",
+      "name": "공정_002",
+      "order": 2
+    }
+  ],
+  "instances": [
+    {
+      "id": "COND1",
+      "code_key": "S_COND01",
+      "instance_type": "STRUCTURE",
+      "process_id": "PROC_001",
+      "media": [
+        "RAW_WATER",
+        "SLUDGE"
+      ],
+      "location_type": "PROCESS_AREA"
+    },
+    {
+      "id": "COND2",
+      "code_key": "S_COND01",
+      "instance_type": "STRUCTURE",
+      "process_id": "PROC_001",
+      "media": [
+        "RAW_WATER",
+        "SLUDGE"
+      ],
+      "location_type": "PROCESS_AREA"
+    },
+    {
+      "id": "COND3",
+      "code_key": "S_COND01",
+      "instance_type": "STRUCTURE",
+      "process_id": "PROC_002",
+      "media": [
+        "RAW_WATER"
+      ],
+      "location_type": "PROCESS_AREA"
+    },
+    {
+      "id": "TDIF1",
+      "code_key": "M_TDIF04",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "AIR"
+      ],
+      "series_id": "TDIF",
+      "location_type": "INSIDE_STRUCTURE",
+      "parent_structure": "COND1",
+      "inside_slot": "INSIDE1"
+    },
+    {
+      "id": "FDC1",
+      "code_key": "M_FDC01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "RAW_WATER"
+      ],
+      "series_id": "FDC",
+      "location_type": "INSIDE_STRUCTURE",
+      "parent_structure": "COND1",
+      "inside_slot": "INSIDE2"
+    },
+    {
+      "id": "TDIF2",
+      "code_key": "M_TDIF04",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "AIR"
+      ],
+      "series_id": "TDIF",
+      "location_type": "INSIDE_STRUCTURE",
+      "parent_structure": "COND2",
+      "inside_slot": "INSIDE1"
+    },
+    {
+      "id": "FDC2",
+      "code_key": "M_FDC01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "RAW_WATER"
+      ],
+      "series_id": "FDC",
+      "location_type": "INSIDE_STRUCTURE",
+      "parent_structure": "COND2",
+      "inside_slot": "INSIDE2"
+    },
+    {
+      "id": "AEB1",
+      "code_key": "M_AEB0101",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "AIR"
+      ],
+      "series_id": "AEB",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "AEB2",
+      "code_key": "M_AEB0101",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "AIR"
+      ],
+      "series_id": "AEB",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "AEB3",
+      "code_key": "M_AEB0101",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "AIR"
+      ],
+      "series_id": "AEB",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PKA1",
+      "code_key": "M_PKA0103",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "AIR"
+      ],
+      "series_id": "PKA",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PKA2",
+      "code_key": "M_PKA0103",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "AIR"
+      ],
+      "series_id": "PKA",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PKA3",
+      "code_key": "M_PKA0103",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "AIR"
+      ],
+      "series_id": "PKA",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "VAV1",
+      "code_key": "M_VAV0201",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "RAW_WATER"
+      ],
+      "series_id": "VAV",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "VAV2",
+      "code_key": "M_VAV0201",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "RAW_WATER"
+      ],
+      "series_id": "VAV",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PMP1",
+      "code_key": "M_PMP01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "SLUDGE"
+      ],
+      "series_id": "PMP_A",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PMP2",
+      "code_key": "M_PMP01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "SLUDGE"
+      ],
+      "series_id": "PMP_A",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PMP3",
+      "code_key": "M_PMP01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "SLUDGE"
+      ],
+      "series_id": "PMP_A",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "BRX1",
+      "code_key": "M_BRX01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "SLUDGE"
+      ],
+      "series_id": "BRX",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "BRX2",
+      "code_key": "M_BRX01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "SLUDGE"
+      ],
+      "series_id": "BRX",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PMP4",
+      "code_key": "M_PMP01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "SLUDGE"
+      ],
+      "series_id": "PMP_B",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PMP5",
+      "code_key": "M_PMP01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "SLUDGE"
+      ],
+      "series_id": "PMP_B",
+      "location_type": "OUTSIDE_STRUCTURE"
+    },
+    {
+      "id": "PMP6",
+      "code_key": "M_PMP01",
+      "instance_type": "MACHINE",
+      "process_id": "PROC_001",
+      "media": [
+        "SLUDGE"
+      ],
+      "series_id": "PMP_B",
+      "location_type": "OUTSIDE_STRUCTURE"
+    }
+  ],
+  "connections": [
+    {
+      "id": "line_1",
+      "media": "RAW_WATER",
+      "line_class": "WATER",
+      "size": "100A",
+      "from": {
+        "id": "FDC1",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "to": {
+        "id": "VAV1",
+        "port": 1
+      }
+    },
+    {
+      "id": "line_2",
+      "media": "RAW_WATER",
+      "line_class": "WATER",
+      "size": "100A",
+      "from": {
+        "id": "FDC2",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "to": {
+        "id": "VAV2",
+        "port": 1
+      }
+    },
+    {
+      "id": "line_3",
+      "media": "RAW_WATER",
+      "line_class": "WATER",
+      "size": "100A",
+      "from": {
+        "id": "VAV1",
+        "port": 2
+      },
+      "to": {
+        "id": "COND3",
+        "port": 1
+      }
+    },
+    {
+      "id": "line_4",
+      "media": "RAW_WATER",
+      "line_class": "WATER",
+      "size": "100A",
+      "from": {
+        "id": "VAV2",
+        "port": 2
+      },
+      "to": {
+        "id": "COND3",
+        "port": 3
+      }
+    },
+    {
+      "id": "line_5",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "id": "AEB1",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE1"
+        }
+      ],
+      "to": {
+        "id": "TDIF1",
+        "port": 1
+      }
+    },
+    {
+      "id": "line_6",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "id": "AEB3",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE2"
+        }
+      ],
+      "to": {
+        "id": "TDIF2",
+        "port": 1
+      }
+    },
+    {
+      "id": "line_7",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "ref": "TEE1"
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE3"
+        }
+      ],
+      "to": {
+        "ref": "TEE2"
+      }
+    },
+    {
+      "id": "line_7A",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "ref": "TEE1"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE3"
+      }
+    },
+    {
+      "id": "line_7B",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "ref": "TEE2"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE3"
+      }
+    },
+    {
+      "id": "line_8",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "ref": "TEE3"
+      },
+      "to": {
+        "id": "AEB2",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_9",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "COND1",
+        "port": 2,
+        "chain": [
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE4"
+        }
+      ],
+      "to": {
+        "id": "PMP1",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_10",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "COND2",
+        "port": 2,
+        "chain": [
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE5"
+        }
+      ],
+      "to": {
+        "id": "PMP3",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_11",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE4"
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE6"
+        }
+      ],
+      "to": {
+        "ref": "TEE5"
+      }
+    },
+    {
+      "id": "line_11A",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE4"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE6"
+      }
+    },
+    {
+      "id": "line_11B",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE5"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE6"
+      }
+    },
+    {
+      "id": "line_12",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE6"
+      },
+      "to": {
+        "id": "PMP2",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_13",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "PMP1",
+        "port": 2,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE7"
+        }
+      ],
+      "to": {
+        "id": "BRX1",
+        "port": 1
+      }
+    },
+    {
+      "id": "line_14",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "PMP3",
+        "port": 2,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE8"
+        }
+      ],
+      "to": {
+        "id": "BRX2",
+        "port": 1
+      }
+    },
+    {
+      "id": "line_15",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE7"
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE9"
+        }
+      ],
+      "to": {
+        "ref": "TEE8"
+      }
+    },
+    {
+      "id": "line_15A",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE7"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE9"
+      }
+    },
+    {
+      "id": "line_15B",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE8"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE9"
+      }
+    },
+    {
+      "id": "line_16",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "PMP2",
+        "port": 2,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "to": {
+        "ref": "TEE9"
+      }
+    },
+    {
+      "id": "line_17",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "id": "BRX1",
+        "port": 3
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE10"
+        }
+      ],
+      "to": {
+        "id": "PKA1",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_18",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "id": "BRX2",
+        "port": 3
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE11"
+        }
+      ],
+      "to": {
+        "id": "PKA3",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_19",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "ref": "TEE11"
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE12"
+        }
+      ],
+      "to": {
+        "ref": "TEE10"
+      }
+    },
+    {
+      "id": "line_19A",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "ref": "TEE12"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE10"
+      }
+    },
+    {
+      "id": "line_19B",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "ref": "TEE12"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE11"
+      }
+    },
+    {
+      "id": "line_20",
+      "media": "AIR",
+      "line_class": "AIR",
+      "size": "100A",
+      "from": {
+        "ref": "TEE12"
+      },
+      "to": {
+        "id": "PKA2",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_21",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "PMP4",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE13"
+        }
+      ],
+      "to": {
+        "id": "BRX1",
+        "port": 2
+      }
+    },
+    {
+      "id": "line_22",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "PMP6",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE14"
+        }
+      ],
+      "to": {
+        "id": "BRX2",
+        "port": 2
+      }
+    },
+    {
+      "id": "line_23",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE14"
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE15"
+        }
+      ],
+      "to": {
+        "ref": "TEE13"
+      }
+    },
+    {
+      "id": "line_23A",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE15"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE13"
+      }
+    },
+    {
+      "id": "line_23B",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE15"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE14"
+      }
+    },
+    {
+      "id": "line_24",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "PMP5",
+        "port": 1,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      },
+      "to": {
+        "ref": "TEE15"
+      }
+    },
+    {
+      "id": "line_25",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "COND1",
+        "port": 3
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE16"
+        }
+      ],
+      "to": {
+        "id": "PMP4",
+        "port": 2,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_26",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "id": "COND2",
+        "port": 3
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE17"
+        }
+      ],
+      "to": {
+        "id": "PMP6",
+        "port": 2,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "P_VAV01"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    },
+    {
+      "id": "line_27",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE17"
+      },
+      "chain": [
+        {
+          "type": "TEE",
+          "id": "TEE18"
+        }
+      ],
+      "to": {
+        "ref": "TEE16"
+      }
+    },
+    {
+      "id": "line_27A",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE18"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE16"
+      }
+    },
+    {
+      "id": "line_27B",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE18"
+      },
+      "chain": [
+        {
+          "code_key": "FIT_FLNG"
+        },
+        {
+          "code_key": "P_VAV01"
+        },
+        {
+          "code_key": "FIT_FLNG"
+        }
+      ],
+      "to": {
+        "ref": "TEE17"
+      }
+    },
+    {
+      "id": "line_28",
+      "media": "SLUDGE",
+      "line_class": "SLUDGE",
+      "size": "100A",
+      "from": {
+        "ref": "TEE18"
+      },
+      "to": {
+        "id": "PMP5",
+        "port": 2,
+        "chain": [
+          {
+            "code_key": "P_VAV07"
+          },
+          {
+            "code_key": "FIT_FLNG"
+          }
+        ]
+      }
+    }
+  ]
+}
