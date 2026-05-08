@@ -1,0 +1,151 @@
+{
+  "project": {
+    "name": "하수처리장 P&ID",
+    "version": "1.0"
+  },
+  "processes": [
+    {
+      "id": "PROC-01",
+      "name": "유입펌프장",
+      "description": "원수 유입 및 1차 이송"
+    },
+    {
+      "id": "PROC-02",
+      "name": "침사지",
+      "description": "모래 및 협잡물 제거"
+    }
+  ],
+  "structures": [
+    {
+      "id": "STR-01",
+      "name": "유입조",
+      "type": "tank",
+      "process_id": "PROC-01",
+      "ports": [
+        { "id": "OUT1", "label": "펌프 흡입측 유출구 1", "direction": "out" },
+        { "id": "OUT2", "label": "펌프 흡입측 유출구 2", "direction": "out" }
+      ]
+    },
+    {
+      "id": "STR-02",
+      "name": "침사조",
+      "type": "chamber",
+      "process_id": "PROC-02",
+      "ports": [
+        { "id": "IN1",  "label": "유입구", "direction": "in" },
+        { "id": "OUT1", "label": "유출구", "direction": "out" }
+      ]
+    }
+  ],
+  "machines": [
+    {
+      "id": "MCH-01",
+      "tag": "P-001",
+      "name": "유입펌프 1호",
+      "type": "pump",
+      "process_id": "PROC-01",
+      "location": {
+        "type": "external",
+        "structure_id": "STR-01"
+      },
+      "ports": [
+        { "id": "SUCTION",   "label": "흡입구", "direction": "in" },
+        { "id": "DISCHARGE", "label": "토출구", "direction": "out" }
+      ]
+    },
+    {
+      "id": "MCH-02",
+      "tag": "P-002",
+      "name": "유입펌프 2호",
+      "type": "pump",
+      "process_id": "PROC-01",
+      "location": {
+        "type": "external",
+        "structure_id": "STR-01"
+      },
+      "ports": [
+        { "id": "SUCTION",   "label": "흡입구", "direction": "in" },
+        { "id": "DISCHARGE", "label": "토출구", "direction": "out" }
+      ]
+    }
+  ],
+  "pipes": [
+    {
+      "id": "PIPE-01",
+      "media": "sewage",
+      "size": "DN200",
+      "from": { "type": "structure", "id": "STR-01", "port": "OUT1" },
+      "to":   { "type": "machine",   "id": "MCH-01", "port": "SUCTION" },
+      "tees": [],
+      "from_accessories": [],
+      "to_accessories": [
+        { "type": "gate_valve", "tag": "GV-001" }
+      ],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-02",
+      "media": "sewage",
+      "size": "DN200",
+      "from": { "type": "structure", "id": "STR-01", "port": "OUT2" },
+      "to":   { "type": "machine",   "id": "MCH-02", "port": "SUCTION" },
+      "tees": [],
+      "from_accessories": [],
+      "to_accessories": [
+        { "type": "gate_valve", "tag": "GV-002" }
+      ],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-03",
+      "media": "sewage",
+      "size": "DN200",
+      "from": { "type": "machine",   "id": "MCH-01", "port": "DISCHARGE" },
+      "to":   { "type": "structure", "id": "STR-02", "port": "IN1" },
+      "tees": [
+        { "id": "TEE-01" }
+      ],
+      "from_accessories": [
+        { "type": "check_valve", "tag": "CV-001" },
+        { "type": "gate_valve",  "tag": "GV-003" }
+      ],
+      "to_accessories": [],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-04",
+      "media": "sewage",
+      "size": "DN200",
+      "from": { "type": "machine", "id": "MCH-02", "port": "DISCHARGE" },
+      "to":   { "type": "tee", "pipe_id": "PIPE-03", "tee_id": "TEE-01" },
+      "tees": [],
+      "from_accessories": [
+        { "type": "check_valve", "tag": "CV-002" },
+        { "type": "gate_valve",  "tag": "GV-004" }
+      ],
+      "to_accessories": [],
+      "inline_accessories": []
+    }
+  ],
+  "instruments": [
+    {
+      "id": "INST-01",
+      "tag": "LT-001",
+      "type": "level_transmitter",
+      "installation": {
+        "type": "attached",
+        "target_type": "structure",
+        "target_id": "STR-01"
+      }
+    },
+    {
+      "id": "INST-02",
+      "tag": "FT-001",
+      "type": "flow_transmitter",
+      "installation": {
+        "type": "inline",
+        "pipe_id": "PIPE-03"
+      }
+    }
+  ]
+}
