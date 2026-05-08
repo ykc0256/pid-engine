@@ -28,3 +28,20 @@ class Engine:
     def generate_only(self, json_path: str | Path) -> str:
         ruleset = self.parser.parse_file(json_path)
         return self.generator.generate(ruleset)
+
+    def generate_v2_file(self, json_path: str | Path, output_path: str | Path) -> str:
+        """Parse V2 PID JSON and generate LISP output file."""
+        from .parser.pid_v2_parser import PIDV2Parser
+        from .generator.pid_v2_generator import PIDV2Generator
+
+        parser = PIDV2Parser()
+        pid_data = parser.parse_file(json_path)
+
+        # Find the reference file for template extraction
+        ref_path = Path(json_path).parent.parent / "output" / "pid_test_v2_lines_1_28_jump_r3.lsp"
+
+        generator = PIDV2Generator(reference_lsp_path=ref_path)
+        lisp_code = generator.generate(pid_data)
+
+        Path(output_path).write_text(lisp_code, encoding="utf-8")
+        return lisp_code
