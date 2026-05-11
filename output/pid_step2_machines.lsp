@@ -1,5 +1,5 @@
 ;;; ============================================================
-;;; PID-ENGINE  Step 2 — 구조물 + 기계 배치
+;;; PID-ENGINE  Step 2 — 구조물 + 기계 배치 (외부·내부 통합)
 ;;; 단위    : mm  |  삽입점: 블록 좌하단 기준
 ;;; 밴드 순서 (위→아래): 약품 / 공기 / 원수 / 슬러지
 ;;; 실행    : (load "전체경로/pid_step2_machines.lsp") 후 PID-STEP2
@@ -37,7 +37,7 @@
     ("STR-A02" "S_COND01" "PROC-A" 1)
     ("STR-B01" "S_COND01" "PROC-B" 1)))
 
-;; ── 기계 데이터 (외부 기계) ───────────────────────────────────
+;; ── 외부 기계 데이터 ──────────────────────────────────────────
 ;; (id  code_key  proc-id  band  group-id  order-in-group  group-order-in-band)
 (setq *MACHINES*
   '(
@@ -73,6 +73,15 @@
     ("MCH-B05" "M_PMP0601" "PROC-B" "sludge" "PMP0601"    1  0)
   ))
 
+;; ── 내부 기계 데이터 ──────────────────────────────────────────
+;; (mch-id  code_key  str-id  slot-tag)
+;; slot-tag = 해당 code_key 의 DB parent_key
+(setq *INT-MACHINES*
+  '(("MCH-A17" "M_FDC01"  "STR-A01" "M_FDCT")
+    ("MCH-A18" "M_TDIF04" "STR-A01" "M_TDIF")
+    ("MCH-A19" "M_FDC01"  "STR-A02" "M_FDCT")
+    ("MCH-A20" "M_TDIF04" "STR-A02" "M_TDIF")))
+
 ;; ── 유틸리티 ─────────────────────────────────────────────────
 
 (defun get-cnt (tbl key / rec)
@@ -93,10 +102,7 @@
   (if rec (cdr rec) 0))
 
 ;; 공정별 X 시작 좌표 동적 계산
-;; 각 공정 폭 = STR-W + ACC-SPACE + (최대 grp-ord + 1) × (MCH-W + GROUP-H-GAP)
-;; 다음 공정 시작 = 현재 공정 폭 우측 끝 + PROC-MARGIN
 (defun compute-proc-x (/ proc-max pid grp-ord cur x w)
-  ;; 공정별 최대 grp-ord 수집
   (setq proc-max '())
   (foreach mch *MACHINES*
     (setq pid     (nth 2 mch)
@@ -105,20 +111,28 @@
     (if (> grp-ord cur)
       (setq proc-max (set-cnt proc-max pid grp-ord))))
 
-  ;; 순서대로 X 누적
   (setq x *ORIG-X*  *PROC-X* '())
   (foreach p *PROCESSES*
     (setq *PROC-X* (set-cnt *PROC-X* p x))
-    ;; 이 공정의 가장 오른쪽 기계 우측 끝 X
     (setq w (+ *STR-W* *ACC-SPACE*
                (* (1+ (get-cnt proc-max p))
                   (+ *MCH-W* *GROUP-H-GAP*))))
     (setq x (+ x w *PROC-MARGIN*)))
 
-  (princ (strcat "\n  PROC-A 시작 X: "
-                 (rtos (get-proc-x "PROC-A") 2 0)))
-  (princ (strcat "\n  PROC-B 시작 X: "
-                 (rtos (get-proc-x "PROC-B") 2 0))))
+  (princ (strcat "\n  PROC-A 시작 X: " (rtos (get-proc-x "PROC-A") 2 0)))
+  (princ (strcat "\n  PROC-B 시작 X: " (rtos (get-proc-x "PROC-B") 2 0))))
+
+;; ── 구조물 삽입점 계산 ───────────────────────────────────────
+(defun str-insert-pt (target-id / tbl cnt key str result)
+  (setq tbl '()  result nil)
+  (foreach str *STRUCTURES*
+    (setq key (strcat (nth 2 str) "_" (itoa (nth 3 str)))
+          cnt (get-cnt tbl key))
+    (if (equal (nth 0 str) target-id)
+      (setq result (list (get-proc-x (nth 2 str))
+                         (- *ORIG-Y* (* cnt (+ *STR-H* *STR-GAP*))))))
+    (setq tbl (set-cnt tbl key (1+ cnt))))
+  result)
 
 ;; ── 구조물 배치 ───────────────────────────────────────────────
 (defun place-structures (/ tbl str-id ckey pid grp key cnt x y)
@@ -142,7 +156,7 @@
                    "  (" (rtos x 2 0) ", " (rtos y 2 0) ")")))
   (setvar "ATTREQ" 1))
 
-;; ── 기계 배치 ─────────────────────────────────────────────────
+;; ── 외부 기계 배치 ────────────────────────────────────────────
 (defun place-machines (/ mch-id ckey pid band grp-id ord grp-ord x y proc-x)
   (setvar "ATTREQ" 0)
   (foreach mch *MACHINES*
@@ -155,14 +169,8 @@
           grp-ord (nth 6 mch))
 
     (setq proc-x (get-proc-x pid))
-
-    ;; X: 공정 시작 + 구조물 가로 + 공간 + (그룹순서 × 그룹폭)
-    (setq x (+ proc-x
-               *STR-W*
-               *ACC-SPACE*
+    (setq x (+ proc-x *STR-W* *ACC-SPACE*
                (* grp-ord (+ *MCH-W* *GROUP-H-GAP*))))
-
-    ;; Y: 밴드 기준 Y - (그룹 내 순서 × 기계 피치)
     (setq y (- (band-y band)
                (* ord (+ *MCH-H* *MCH-V-GAP*))))
 
@@ -170,10 +178,71 @@
     (command "._TEXT"
              (list (+ x 2) (+ y *MCH-H* 8))
              *LBL-M* 0 mch-id)
-
-    (princ (strcat "\n  기계 배치: " mch-id
+    (princ (strcat "\n  외부기계 배치: " mch-id
                    "  band=" band
                    "  (" (rtos x 2 0) ", " (rtos y 2 0) ")")))
+  (setvar "ATTREQ" 1))
+
+;; ── 내부 기계 배치 ───────────────────────────────────────────
+;; 구조물 블록 내 ATTRIB(TAG=slot-tag)의 삽입점에 기계 블록 삽입
+(defun find-str-ename (str-id / pt ss i en ed ins found)
+  (setq pt (str-insert-pt str-id)  found nil)
+  (if (null pt)
+    (princ (strcat "\n  [경고] " str-id " 삽입점 계산 실패"))
+    (progn
+      (setq ss (ssget "X" '((0 . "INSERT"))))
+      (if ss
+        (progn
+          (setq i 0)
+          (while (and (< i (sslength ss)) (not found))
+            (setq en  (ssname ss i)
+                  ed  (entget en)
+                  ins (cdr (assoc 10 ed)))
+            (if (and (< (abs (- (car  ins) (car  pt))) 1.0)
+                     (< (abs (- (cadr ins) (cadr pt))) 1.0))
+              (setq found en)
+              (setq i (1+ i))))))))
+  found)
+
+(defun get-slot-pt (blk-en slot-tag / en ed result)
+  (setq en (entnext blk-en)  result nil)
+  (while (and en (not result))
+    (setq ed (entget en))
+    (cond
+      ((equal (cdr (assoc 0 ed)) "ATTRIB")
+       (if (equal (strcase (cdr (assoc 2 ed))) (strcase slot-tag))
+         (setq result (cdr (assoc 10 ed))))
+       (setq en (entnext en)))
+      ((equal (cdr (assoc 0 ed)) "SEQEND")
+       (setq en nil))
+      (T (setq en (entnext en)))))
+  result)
+
+(defun place-internal-machines (/ mch-id ckey str-id slot-tag blk-en pt)
+  (setvar "ATTREQ" 0)
+  (foreach mch *INT-MACHINES*
+    (setq mch-id   (nth 0 mch)
+          ckey     (nth 1 mch)
+          str-id   (nth 2 mch)
+          slot-tag (nth 3 mch))
+
+    (setq blk-en (find-str-ename str-id))
+    (if (null blk-en)
+      (princ (strcat "\n  [경고] " str-id " 블록 없음 — " mch-id " 건너뜀"))
+      (progn
+        (setq pt (get-slot-pt blk-en slot-tag))
+        (if (null pt)
+          (princ (strcat "\n  [경고] " str-id
+                         " 슬롯 '" slot-tag "' 없음 — " mch-id " 건너뜀"))
+          (progn
+            (command "._INSERT" ckey (list (car pt) (cadr pt)) 1 1 0)
+            (command "._TEXT"
+                     (list (+ (car pt) 2) (+ (cadr pt) 35))
+                     *LBL-M* 0 mch-id)
+            (princ (strcat "\n  내부기계 배치: " mch-id
+                           "  슬롯=" slot-tag
+                           "  (" (rtos (car pt) 2 0)
+                           ", " (rtos (cadr pt) 2 0) ")")))))))
   (setvar "ATTREQ" 1))
 
 ;; ── 진입점 ────────────────────────────────────────────────────
@@ -184,8 +253,10 @@
   (compute-proc-x)
   (princ "\n[Step2] 구조물 배치...\n")
   (place-structures)
-  (princ "\n[Step2] 기계 배치...\n")
+  (princ "\n[Step2] 외부 기계 배치...\n")
   (place-machines)
+  (princ "\n[Step2] 내부 기계 배치...\n")
+  (place-internal-machines)
   (command "._ZOOM" "E")
   (setvar "CMDECHO" 1)
   (command "._UNDO" "E")
