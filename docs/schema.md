@@ -217,6 +217,33 @@
 | 배치 위치 | 노즐 중심점에 정확히 클릭하여 배치 |
 | 좌표 기준 | Attribute **삽입점(insertion point)** = 노즐 좌표 |
 
+### 내부 기계 슬롯 표현 방식
+
+구조물 블록 내부에 내부 기계의 삽입 위치를 나타내는 **슬롯 attribute**를 배치한다.
+
+| 항목 | 규칙 |
+|------|------|
+| Attribute TAG | 내부 기계 `code_key`의 **DB `parent_key`** 값 사용 |
+| Attribute 가시성 | **Invisible** |
+| 배치 위치 | 해당 기계가 삽입될 위치에 정확히 배치 |
+| 좌표 기준 | Attribute 삽입점 = 내부 기계 블록의 삽입 좌표 |
+
+**예시:**
+
+| 내부 기계 code_key | DB parent_key | 구조물 슬롯 TAG |
+|--------------------|---------------|-----------------|
+| `M_FDC01` | `M_FDCT` | `M_FDCT` |
+| `M_FDC02` | `M_FDCT` | `M_FDCT` |
+| `M_TDIF04` | `M_TDIF` | `M_TDIF` |
+
+**LISP 흐름:**
+```
+① JSON에서 내부 기계 code_key 확인 (예: M_FDC01)
+② DB 조회: M_FDC01의 parent_key = M_FDCT
+③ 구조물 블록에서 TAG="M_FDCT" attribute 검색 → 삽입 좌표 획득
+④ 해당 좌표에 M_FDC01 블록 삽입
+```
+
 ### LISP 엔진의 좌표 추출 방식
 
 ```
