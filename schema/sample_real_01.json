@@ -85,7 +85,7 @@
     {
       "_note": "=== A공정 슬러지 순환 Seg1: STR → PKA0102-G1 흡입 ===",
       "id": "PIPE-A01",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "structure", "id": "STR-A01", "port": "OUT1" },
       "to":   { "type": "machine",   "id": "MCH-A03", "port": "IN1"  },
       "tees": [{ "id": "TEE-A1-1" }],
@@ -95,7 +95,7 @@
     },
     {
       "id": "PIPE-A02",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "structure", "id": "STR-A02", "port": "OUT1" },
       "to":   { "type": "machine",   "id": "MCH-A05", "port": "IN1"  },
       "tees": [{ "id": "TEE-A1-2" }],
@@ -105,7 +105,7 @@
     },
     {
       "id": "PIPE-A03",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "tee", "pipe_id": "PIPE-A01", "tee_id": "TEE-A1-1" },
       "to":   { "type": "tee", "pipe_id": "PIPE-A02", "tee_id": "TEE-A1-2" },
       "tees": [{ "id": "TEE-A1-3" }],
@@ -115,7 +115,7 @@
     },
     {
       "id": "PIPE-A04",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "tee",     "pipe_id": "PIPE-A03", "tee_id": "TEE-A1-3" },
       "to":   { "type": "machine", "id": "MCH-A04", "port": "IN1" },
       "tees": [],
@@ -127,7 +127,7 @@
     {
       "_note": "=== A공정 슬러지 순환 Seg2: PKA0102-G1 토출 → BRX01 ===",
       "id": "PIPE-A05",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A03", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A06", "port": "IN1"  },
       "tees": [{ "id": "TEE-A2-1" }],
@@ -137,7 +137,7 @@
     },
     {
       "id": "PIPE-A06",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A05", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A07", "port": "IN1"  },
       "tees": [{ "id": "TEE-A2-2" }],
@@ -147,7 +147,7 @@
     },
     {
       "id": "PIPE-A07",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "tee", "pipe_id": "PIPE-A05", "tee_id": "TEE-A2-1" },
       "to":   { "type": "tee", "pipe_id": "PIPE-A06", "tee_id": "TEE-A2-2" },
       "tees": [{ "id": "TEE-A2-3" }],
@@ -157,7 +157,7 @@
     },
     {
       "id": "PIPE-A08",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A04", "port": "OUT1" },
       "to":   { "type": "tee",     "pipe_id": "PIPE-A07", "tee_id": "TEE-A2-3" },
       "tees": [],
@@ -169,7 +169,7 @@
     {
       "_note": "=== A공정 슬러지 순환 Seg3: BRX01 출구 → PKA0102-G2 흡입 ===",
       "id": "PIPE-A09",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A06", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A08", "port": "IN1"  },
       "tees": [{ "id": "TEE-A3-1" }],
@@ -179,7 +179,7 @@
     },
     {
       "id": "PIPE-A10",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A07", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A10", "port": "IN1"  },
       "tees": [{ "id": "TEE-A3-2" }],
@@ -189,7 +189,7 @@
     },
     {
       "id": "PIPE-A11",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "tee", "pipe_id": "PIPE-A09", "tee_id": "TEE-A3-1" },
       "to":   { "type": "tee", "pipe_id": "PIPE-A10", "tee_id": "TEE-A3-2" },
       "tees": [{ "id": "TEE-A3-3" }],
@@ -199,7 +199,7 @@
     },
     {
       "id": "PIPE-A12",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "tee",     "pipe_id": "PIPE-A11", "tee_id": "TEE-A3-3" },
       "to":   { "type": "machine", "id": "MCH-A09", "port": "IN1" },
       "tees": [],
@@ -211,7 +211,7 @@
     {
       "_note": "=== A공정 슬러지 순환 Seg4: PKA0102-G2 토출 → STR ===",
       "id": "PIPE-A13",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "machine",   "id": "MCH-A08",  "port": "OUT1" },
       "to":   { "type": "structure", "id": "STR-A01", "port": "IN1"  },
       "tees": [{ "id": "TEE-A4-1" }],
@@ -221,7 +221,7 @@
     },
     {
       "id": "PIPE-A14",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "machine",   "id": "MCH-A10",  "port": "OUT1" },
       "to":   { "type": "structure", "id": "STR-A02", "port": "IN1"  },
       "tees": [{ "id": "TEE-A4-2" }],
@@ -231,7 +231,7 @@
     },
     {
       "id": "PIPE-A15",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "tee", "pipe_id": "PIPE-A13", "tee_id": "TEE-A4-1" },
       "to":   { "type": "tee", "pipe_id": "PIPE-A14", "tee_id": "TEE-A4-2" },
       "tees": [{ "id": "TEE-A4-3" }],
@@ -241,7 +241,7 @@
     },
     {
       "id": "PIPE-A16",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A09", "port": "OUT1" },
       "to":   { "type": "tee",     "pipe_id": "PIPE-A15", "tee_id": "TEE-A4-3" },
       "tees": [],
@@ -253,7 +253,7 @@
     {
       "_note": "=== A공정 공기: AEB0101 → TDIF04 (STR 내부) ===",
       "id": "PIPE-A17",
-      "media": "air", "size": null,
+      "media": "air", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A11", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A18", "port": "IN1"  },
       "tees": [{ "id": "TEE-A5-1" }],
@@ -263,7 +263,7 @@
     },
     {
       "id": "PIPE-A18",
-      "media": "air", "size": null,
+      "media": "air", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A13", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A20", "port": "IN1"  },
       "tees": [{ "id": "TEE-A5-2" }],
@@ -273,7 +273,7 @@
     },
     {
       "id": "PIPE-A19",
-      "media": "air", "size": null,
+      "media": "air", "size": "100A",
       "from": { "type": "tee", "pipe_id": "PIPE-A17", "tee_id": "TEE-A5-1" },
       "to":   { "type": "tee", "pipe_id": "PIPE-A18", "tee_id": "TEE-A5-2" },
       "tees": [{ "id": "TEE-A5-3" }],
@@ -283,7 +283,7 @@
     },
     {
       "id": "PIPE-A20",
-      "media": "air", "size": null,
+      "media": "air", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A12", "port": "OUT1" },
       "to":   { "type": "tee",     "pipe_id": "PIPE-A19", "tee_id": "TEE-A5-3" },
       "tees": [],
@@ -295,7 +295,7 @@
     {
       "_note": "=== A공정 공기: PKA0103 → BRX01 ===",
       "id": "PIPE-A21",
-      "media": "air", "size": null,
+      "media": "air", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A14", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A06", "port": "IN2"  },
       "tees": [{ "id": "TEE-A6-1" }],
@@ -305,7 +305,7 @@
     },
     {
       "id": "PIPE-A22",
-      "media": "air", "size": null,
+      "media": "air", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A16", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A07", "port": "IN2"  },
       "tees": [{ "id": "TEE-A6-2" }],
@@ -315,7 +315,7 @@
     },
     {
       "id": "PIPE-A23",
-      "media": "air", "size": null,
+      "media": "air", "size": "100A",
       "from": { "type": "tee", "pipe_id": "PIPE-A21", "tee_id": "TEE-A6-1" },
       "to":   { "type": "tee", "pipe_id": "PIPE-A22", "tee_id": "TEE-A6-2" },
       "tees": [{ "id": "TEE-A6-3" }],
@@ -325,7 +325,7 @@
     },
     {
       "id": "PIPE-A24",
-      "media": "air", "size": null,
+      "media": "air", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A15", "port": "OUT1" },
       "to":   { "type": "tee",     "pipe_id": "PIPE-A23", "tee_id": "TEE-A6-3" },
       "tees": [],
@@ -337,7 +337,7 @@
     {
       "_note": "=== A공정 원수: FDC01 → VAV0101 (1:1 직결) ===",
       "id": "PIPE-A25",
-      "media": "sewage", "size": null,
+      "media": "sewage", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A17", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A01", "port": "IN1"  },
       "tees": [],
@@ -347,7 +347,7 @@
     },
     {
       "id": "PIPE-A26",
-      "media": "sewage", "size": null,
+      "media": "sewage", "size": "100A",
       "from": { "type": "machine", "id": "MCH-A19", "port": "OUT1" },
       "to":   { "type": "machine", "id": "MCH-A02", "port": "IN1"  },
       "tees": [],
@@ -359,7 +359,7 @@
     {
       "_note": "=== B공정 원수: STR-B01 → PMP0602 흡입 매니폴드 ===",
       "id": "PIPE-B01",
-      "media": "sewage", "size": null,
+      "media": "sewage", "size": "100A",
       "from": { "type": "structure", "id": "STR-B01", "port": "OUT1" },
       "to":   { "type": "machine",   "id": "MCH-B03", "port": "IN1"  },
       "tees": [{ "id": "TEE-B2" }],
@@ -369,7 +369,7 @@
     },
     {
       "id": "PIPE-B02",
-      "media": "sewage", "size": null,
+      "media": "sewage", "size": "100A",
       "from": { "type": "tee",     "pipe_id": "PIPE-B01", "tee_id": "TEE-B2" },
       "to":   { "type": "machine", "id": "MCH-B01", "port": "IN1" },
       "tees": [{ "id": "TEE-B1" }],
@@ -379,7 +379,7 @@
     },
     {
       "id": "PIPE-B03",
-      "media": "sewage", "size": null,
+      "media": "sewage", "size": "100A",
       "from": { "type": "tee",     "pipe_id": "PIPE-B02", "tee_id": "TEE-B1" },
       "to":   { "type": "machine", "id": "MCH-B02", "port": "IN1" },
       "tees": [],
@@ -391,7 +391,7 @@
     {
       "_note": "=== B공정 슬러지: STR-B01 → PMP0601 흡입 ===",
       "id": "PIPE-B04",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "structure", "id": "STR-B01", "port": "OUT2" },
       "to":   { "type": "machine",   "id": "MCH-B04", "port": "IN1"  },
       "tees": [{ "id": "TEE-B3" }],
@@ -401,7 +401,7 @@
     },
     {
       "id": "PIPE-B05",
-      "media": "sludge", "size": null,
+      "media": "sludge", "size": "100A",
       "from": { "type": "tee",     "pipe_id": "PIPE-B04", "tee_id": "TEE-B3" },
       "to":   { "type": "machine", "id": "MCH-B05", "port": "IN1" },
       "tees": [],
