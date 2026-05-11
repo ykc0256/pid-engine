@@ -1,0 +1,416 @@
+{
+  "project": {
+    "name": "하수처리장 P&ID 엔진 샘플 (실데이터)",
+    "version": "0.1"
+  },
+
+  "processes": [
+    { "id": "PROC-A", "name": "A공정", "description": "" },
+    { "id": "PROC-B", "name": "B공정", "description": "" }
+  ],
+
+  "structures": [
+    {
+      "id": "STR-A01",
+      "code_key": "S_COND01",
+      "name": "조정조 A-1",
+      "type": "tank",
+      "process_id": "PROC-A",
+      "ports": [
+        { "id": "OUT1", "label": "슬러지 출구", "direction": "out" },
+        { "id": "IN1",  "label": "슬러지 입구", "direction": "in"  }
+      ]
+    },
+    {
+      "id": "STR-A02",
+      "code_key": "S_COND01",
+      "name": "조정조 A-2",
+      "type": "tank",
+      "process_id": "PROC-A",
+      "ports": [
+        { "id": "OUT1", "label": "슬러지 출구", "direction": "out" },
+        { "id": "IN1",  "label": "슬러지 입구", "direction": "in"  }
+      ]
+    },
+    {
+      "id": "STR-B01",
+      "code_key": "S_COND01",
+      "name": "조정조 B-1",
+      "type": "tank",
+      "process_id": "PROC-B",
+      "ports": [
+        { "id": "OUT1", "label": "원수 출구",   "direction": "out" },
+        { "id": "OUT2", "label": "슬러지 출구", "direction": "out" }
+      ]
+    }
+  ],
+
+  "machines": [
+    { "id": "MCH-A01", "code_key": "M_VAV0101", "tag": "", "name": "VAV0101-1",       "type": "valve",     "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "원수 입구", "direction": "in" }] },
+    { "id": "MCH-A02", "code_key": "M_VAV0101", "tag": "", "name": "VAV0101-2",       "type": "valve",     "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "원수 입구", "direction": "in" }] },
+
+    { "id": "MCH-A03", "code_key": "M_PKA0102", "tag": "", "name": "PKA0102-G1-1",        "type": "pump", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-A04", "code_key": "M_PKA0102", "tag": "", "name": "PKA0102-G1-2(예비)",  "type": "pump", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-A05", "code_key": "M_PKA0102", "tag": "", "name": "PKA0102-G1-3",        "type": "pump", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+
+    { "id": "MCH-A06", "code_key": "M_BRX01", "tag": "", "name": "BRX01-1", "type": "processor", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "슬러지 입구", "direction": "in" }, { "id": "OUT1", "label": "슬러지 출구", "direction": "out" }, { "id": "IN2", "label": "공기 입구", "direction": "in" }] },
+    { "id": "MCH-A07", "code_key": "M_BRX01", "tag": "", "name": "BRX01-2", "type": "processor", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "슬러지 입구", "direction": "in" }, { "id": "OUT1", "label": "슬러지 출구", "direction": "out" }, { "id": "IN2", "label": "공기 입구", "direction": "in" }] },
+
+    { "id": "MCH-A08", "code_key": "M_PKA0102", "tag": "", "name": "PKA0102-G2-1",        "type": "pump", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-A09", "code_key": "M_PKA0102", "tag": "", "name": "PKA0102-G2-2(예비)",  "type": "pump", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-A10", "code_key": "M_PKA0102", "tag": "", "name": "PKA0102-G2-3",        "type": "pump", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+
+    { "id": "MCH-A11", "code_key": "M_AEB0101", "tag": "", "name": "AEB0101-1",        "type": "blower", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-A12", "code_key": "M_AEB0101", "tag": "", "name": "AEB0101-2(예비)",  "type": "blower", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-A13", "code_key": "M_AEB0101", "tag": "", "name": "AEB0101-3",        "type": "blower", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "OUT1", "label": "토출", "direction": "out" }] },
+
+    { "id": "MCH-A14", "code_key": "M_PKA0103", "tag": "", "name": "PKA0103-1",        "type": "blower", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-A15", "code_key": "M_PKA0103", "tag": "", "name": "PKA0103-2(예비)",  "type": "blower", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-A16", "code_key": "M_PKA0103", "tag": "", "name": "PKA0103-3",        "type": "blower", "process_id": "PROC-A", "location": { "type": "external", "process_id": "PROC-A" }, "ports": [{ "id": "OUT1", "label": "토출", "direction": "out" }] },
+
+    { "id": "MCH-A17", "code_key": "M_FDC01",  "tag": "", "name": "FDC01-A1",  "type": "feeder",   "process_id": "PROC-A", "location": { "type": "internal", "structure_id": "STR-A01" }, "ports": [{ "id": "OUT1", "label": "원수 출구", "direction": "out" }] },
+    { "id": "MCH-A18", "code_key": "M_TDIF04", "tag": "", "name": "TDIF04-A1", "type": "diffuser", "process_id": "PROC-A", "location": { "type": "internal", "structure_id": "STR-A01" }, "ports": [{ "id": "IN1",  "label": "공기 입구", "direction": "in"  }] },
+    { "id": "MCH-A19", "code_key": "M_FDC01",  "tag": "", "name": "FDC01-A2",  "type": "feeder",   "process_id": "PROC-A", "location": { "type": "internal", "structure_id": "STR-A02" }, "ports": [{ "id": "OUT1", "label": "원수 출구", "direction": "out" }] },
+    { "id": "MCH-A20", "code_key": "M_TDIF04", "tag": "", "name": "TDIF04-A2", "type": "diffuser", "process_id": "PROC-A", "location": { "type": "internal", "structure_id": "STR-A02" }, "ports": [{ "id": "IN1",  "label": "공기 입구", "direction": "in"  }] },
+
+    { "id": "MCH-B01", "code_key": "M_PMP0602", "tag": "", "name": "PMP0602-1",       "type": "pump", "process_id": "PROC-B", "location": { "type": "external", "process_id": "PROC-B" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-B02", "code_key": "M_PMP0602", "tag": "", "name": "PMP0602-2(예비)", "type": "pump", "process_id": "PROC-B", "location": { "type": "external", "process_id": "PROC-B" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-B03", "code_key": "M_PMP0602", "tag": "", "name": "PMP0602-3",       "type": "pump", "process_id": "PROC-B", "location": { "type": "external", "process_id": "PROC-B" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-B04", "code_key": "M_PMP0601", "tag": "", "name": "PMP0601-1",       "type": "pump", "process_id": "PROC-B", "location": { "type": "external", "process_id": "PROC-B" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] },
+    { "id": "MCH-B05", "code_key": "M_PMP0601", "tag": "", "name": "PMP0601-2(예비)", "type": "pump", "process_id": "PROC-B", "location": { "type": "external", "process_id": "PROC-B" }, "ports": [{ "id": "IN1", "label": "흡입", "direction": "in" }, { "id": "OUT1", "label": "토출", "direction": "out" }] }
+  ],
+
+  "pipes": [
+
+    {
+      "_note": "=== A공정 슬러지 순환 Seg1: STR → PKA0102-G1 흡입 ===",
+      "id": "PIPE-A01",
+      "media": "sludge", "size": null,
+      "from": { "type": "structure", "id": "STR-A01", "port": "OUT1" },
+      "to":   { "type": "machine",   "id": "MCH-A03", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A1-1" }],
+      "from_accessories": [{ "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A02",
+      "media": "sludge", "size": null,
+      "from": { "type": "structure", "id": "STR-A02", "port": "OUT1" },
+      "to":   { "type": "machine",   "id": "MCH-A05", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A1-2" }],
+      "from_accessories": [{ "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A03",
+      "media": "sludge", "size": null,
+      "from": { "type": "tee", "pipe_id": "PIPE-A01", "tee_id": "TEE-A1-1" },
+      "to":   { "type": "tee", "pipe_id": "PIPE-A02", "tee_id": "TEE-A1-2" },
+      "tees": [{ "id": "TEE-A1-3" }],
+      "from_accessories": [],
+      "to_accessories":   [],
+      "inline_accessories": [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }]
+    },
+    {
+      "id": "PIPE-A04",
+      "media": "sludge", "size": null,
+      "from": { "type": "tee",     "pipe_id": "PIPE-A03", "tee_id": "TEE-A1-3" },
+      "to":   { "type": "machine", "id": "MCH-A04", "port": "IN1" },
+      "tees": [],
+      "from_accessories": [],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+
+    {
+      "_note": "=== A공정 슬러지 순환 Seg2: PKA0102-G1 토출 → BRX01 ===",
+      "id": "PIPE-A05",
+      "media": "sludge", "size": null,
+      "from": { "type": "machine", "id": "MCH-A03", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A06", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A2-1" }],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A06",
+      "media": "sludge", "size": null,
+      "from": { "type": "machine", "id": "MCH-A05", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A07", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A2-2" }],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A07",
+      "media": "sludge", "size": null,
+      "from": { "type": "tee", "pipe_id": "PIPE-A05", "tee_id": "TEE-A2-1" },
+      "to":   { "type": "tee", "pipe_id": "PIPE-A06", "tee_id": "TEE-A2-2" },
+      "tees": [{ "id": "TEE-A2-3" }],
+      "from_accessories": [],
+      "to_accessories":   [],
+      "inline_accessories": [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }]
+    },
+    {
+      "id": "PIPE-A08",
+      "media": "sludge", "size": null,
+      "from": { "type": "machine", "id": "MCH-A04", "port": "OUT1" },
+      "to":   { "type": "tee",     "pipe_id": "PIPE-A07", "tee_id": "TEE-A2-3" },
+      "tees": [],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+
+    {
+      "_note": "=== A공정 슬러지 순환 Seg3: BRX01 출구 → PKA0102-G2 흡입 ===",
+      "id": "PIPE-A09",
+      "media": "sludge", "size": null,
+      "from": { "type": "machine", "id": "MCH-A06", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A08", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A3-1" }],
+      "from_accessories": [],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A10",
+      "media": "sludge", "size": null,
+      "from": { "type": "machine", "id": "MCH-A07", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A10", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A3-2" }],
+      "from_accessories": [],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A11",
+      "media": "sludge", "size": null,
+      "from": { "type": "tee", "pipe_id": "PIPE-A09", "tee_id": "TEE-A3-1" },
+      "to":   { "type": "tee", "pipe_id": "PIPE-A10", "tee_id": "TEE-A3-2" },
+      "tees": [{ "id": "TEE-A3-3" }],
+      "from_accessories": [],
+      "to_accessories":   [],
+      "inline_accessories": [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }]
+    },
+    {
+      "id": "PIPE-A12",
+      "media": "sludge", "size": null,
+      "from": { "type": "tee",     "pipe_id": "PIPE-A11", "tee_id": "TEE-A3-3" },
+      "to":   { "type": "machine", "id": "MCH-A09", "port": "IN1" },
+      "tees": [],
+      "from_accessories": [],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+
+    {
+      "_note": "=== A공정 슬러지 순환 Seg4: PKA0102-G2 토출 → STR ===",
+      "id": "PIPE-A13",
+      "media": "sludge", "size": null,
+      "from": { "type": "machine",   "id": "MCH-A08",  "port": "OUT1" },
+      "to":   { "type": "structure", "id": "STR-A01", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A4-1" }],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV01" }],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A14",
+      "media": "sludge", "size": null,
+      "from": { "type": "machine",   "id": "MCH-A10",  "port": "OUT1" },
+      "to":   { "type": "structure", "id": "STR-A02", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A4-2" }],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV01" }],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A15",
+      "media": "sludge", "size": null,
+      "from": { "type": "tee", "pipe_id": "PIPE-A13", "tee_id": "TEE-A4-1" },
+      "to":   { "type": "tee", "pipe_id": "PIPE-A14", "tee_id": "TEE-A4-2" },
+      "tees": [{ "id": "TEE-A4-3" }],
+      "from_accessories": [],
+      "to_accessories":   [],
+      "inline_accessories": [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }]
+    },
+    {
+      "id": "PIPE-A16",
+      "media": "sludge", "size": null,
+      "from": { "type": "machine", "id": "MCH-A09", "port": "OUT1" },
+      "to":   { "type": "tee",     "pipe_id": "PIPE-A15", "tee_id": "TEE-A4-3" },
+      "tees": [],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+
+    {
+      "_note": "=== A공정 공기: AEB0101 → TDIF04 (STR 내부) ===",
+      "id": "PIPE-A17",
+      "media": "air", "size": null,
+      "from": { "type": "machine", "id": "MCH-A11", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A18", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A5-1" }],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "P_VAV03" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A18",
+      "media": "air", "size": null,
+      "from": { "type": "machine", "id": "MCH-A13", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A20", "port": "IN1"  },
+      "tees": [{ "id": "TEE-A5-2" }],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "P_VAV03" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A19",
+      "media": "air", "size": null,
+      "from": { "type": "tee", "pipe_id": "PIPE-A17", "tee_id": "TEE-A5-1" },
+      "to":   { "type": "tee", "pipe_id": "PIPE-A18", "tee_id": "TEE-A5-2" },
+      "tees": [{ "id": "TEE-A5-3" }],
+      "from_accessories": [],
+      "to_accessories":   [],
+      "inline_accessories": [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV04" }, { "code_key": "FIT_FLNG" }]
+    },
+    {
+      "id": "PIPE-A20",
+      "media": "air", "size": null,
+      "from": { "type": "machine", "id": "MCH-A12", "port": "OUT1" },
+      "to":   { "type": "tee",     "pipe_id": "PIPE-A19", "tee_id": "TEE-A5-3" },
+      "tees": [],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+
+    {
+      "_note": "=== A공정 공기: PKA0103 → BRX01 ===",
+      "id": "PIPE-A21",
+      "media": "air", "size": null,
+      "from": { "type": "machine", "id": "MCH-A14", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A06", "port": "IN2"  },
+      "tees": [{ "id": "TEE-A6-1" }],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "P_VAV03" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A22",
+      "media": "air", "size": null,
+      "from": { "type": "machine", "id": "MCH-A16", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A07", "port": "IN2"  },
+      "tees": [{ "id": "TEE-A6-2" }],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "P_VAV03" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A23",
+      "media": "air", "size": null,
+      "from": { "type": "tee", "pipe_id": "PIPE-A21", "tee_id": "TEE-A6-1" },
+      "to":   { "type": "tee", "pipe_id": "PIPE-A22", "tee_id": "TEE-A6-2" },
+      "tees": [{ "id": "TEE-A6-3" }],
+      "from_accessories": [],
+      "to_accessories":   [],
+      "inline_accessories": [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV04" }, { "code_key": "FIT_FLNG" }]
+    },
+    {
+      "id": "PIPE-A24",
+      "media": "air", "size": null,
+      "from": { "type": "machine", "id": "MCH-A15", "port": "OUT1" },
+      "to":   { "type": "tee",     "pipe_id": "PIPE-A23", "tee_id": "TEE-A6-3" },
+      "tees": [],
+      "from_accessories": [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV04" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+
+    {
+      "_note": "=== A공정 원수: FDC01 → VAV0101 (1:1 직결) ===",
+      "id": "PIPE-A25",
+      "media": "sewage", "size": null,
+      "from": { "type": "machine", "id": "MCH-A17", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A01", "port": "IN1"  },
+      "tees": [],
+      "from_accessories": [],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-A26",
+      "media": "sewage", "size": null,
+      "from": { "type": "machine", "id": "MCH-A19", "port": "OUT1" },
+      "to":   { "type": "machine", "id": "MCH-A02", "port": "IN1"  },
+      "tees": [],
+      "from_accessories": [],
+      "to_accessories":   [],
+      "inline_accessories": []
+    },
+
+    {
+      "_note": "=== B공정 원수: STR-B01 → PMP0602 흡입 매니폴드 ===",
+      "id": "PIPE-B01",
+      "media": "sewage", "size": null,
+      "from": { "type": "structure", "id": "STR-B01", "port": "OUT1" },
+      "to":   { "type": "machine",   "id": "MCH-B03", "port": "IN1"  },
+      "tees": [{ "id": "TEE-B2" }],
+      "from_accessories": [{ "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-B02",
+      "media": "sewage", "size": null,
+      "from": { "type": "tee",     "pipe_id": "PIPE-B01", "tee_id": "TEE-B2" },
+      "to":   { "type": "machine", "id": "MCH-B01", "port": "IN1" },
+      "tees": [{ "id": "TEE-B1" }],
+      "from_accessories": [],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": [{ "code_key": "FIT_FLNG" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }]
+    },
+    {
+      "id": "PIPE-B03",
+      "media": "sewage", "size": null,
+      "from": { "type": "tee",     "pipe_id": "PIPE-B02", "tee_id": "TEE-B1" },
+      "to":   { "type": "machine", "id": "MCH-B02", "port": "IN1" },
+      "tees": [],
+      "from_accessories": [],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+
+    {
+      "_note": "=== B공정 슬러지: STR-B01 → PMP0601 흡입 ===",
+      "id": "PIPE-B04",
+      "media": "sludge", "size": null,
+      "from": { "type": "structure", "id": "STR-B01", "port": "OUT2" },
+      "to":   { "type": "machine",   "id": "MCH-B04", "port": "IN1"  },
+      "tees": [{ "id": "TEE-B3" }],
+      "from_accessories": [{ "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "P_VAV01" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    },
+    {
+      "id": "PIPE-B05",
+      "media": "sludge", "size": null,
+      "from": { "type": "tee",     "pipe_id": "PIPE-B04", "tee_id": "TEE-B3" },
+      "to":   { "type": "machine", "id": "MCH-B05", "port": "IN1" },
+      "tees": [],
+      "from_accessories": [],
+      "to_accessories":   [{ "code_key": "P_VAV07" }, { "code_key": "FIT_FLNG" }],
+      "inline_accessories": []
+    }
+
+  ],
+
+  "instruments": []
+}
