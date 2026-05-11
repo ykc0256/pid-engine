@@ -82,6 +82,8 @@
     ("chemical" "PID-CHEMICAL" 6)))
 
 ;; ── 포트 variant 치환 ────────────────────────────────────────
+(setq *PORT-LEAD* 60)       ; 체인 끝 이후 꺾임 전 최소 직관 (mm)
+
 (setq *PORT-VARIANTS*
   '(("FIT_CONRDC" "IN"  "FIT_CONRDC_IN")
     ("FIT_CONRDC" "OUT" "FIT_CONRDC_OUT")))
@@ -203,6 +205,15 @@
         ((= a 180) (list (- ox)  (- oy)))
         ((= a 270) (list oy      (- ox)))
         (T         (list ox      oy))))
+
+;; pt에서 ang 방향으로 dist mm 이동한 점 (ang=nil이면 pt 그대로)
+(defun lead-pt (pt ang dist / dv)
+  (if (or (null ang) (null pt))
+    pt
+    (progn
+      (setq dv (dir-vec ang))
+      (list (+ (car pt)  (* (car  dv) dist))
+            (+ (cadr pt) (* (cadr dv) dist))))))
 
 (defun dom-ang (fp tp / dx dy)
   (setq dx (- (car tp) (car fp))
@@ -517,7 +528,7 @@
 
 (defun process-pipe (pipe / pid fspec tspec fa ta ia tees media
                           fres tres fp-base tp-base fp-ang tp-ang
-                          pipe-fp pipe-tp)
+                          pipe-fp pipe-tp fp-outer tp-outer)
   (setq pid   (nth 0 pipe)
         fspec (nth 1 pipe)
         tspec (nth 2 pipe)
@@ -529,6 +540,7 @@
 
   (set-media-layer media)
 
+  ;; FROM 체인 배치
   (setq fres    (resolve-spec fspec)
         fp-base (nth 0 fres)
         fp-ang  (nth 1 fres))
@@ -536,6 +548,7 @@
     (setq pipe-fp (place-chain fp-base fp-ang (nth 2 fspec) fa))
     (setq pipe-fp fp-base))
 
+  ;; TO 체인 배치
   (setq tres    (resolve-spec tspec)
         tp-base (nth 0 tres)
         tp-ang  (nth 1 tres))
@@ -545,14 +558,31 @@
 
   (if (and pipe-fp pipe-tp)
     (progn
+      ;; 노즐 방향으로 *PORT-LEAD* mm 직관 후 꺾임 (rules §16)
+      ;; TEE 출발(ang=nil)은 리드 없이 그대로 사용
+      (setq fp-outer (lead-pt pipe-fp fp-ang *PORT-LEAD*)
+            tp-outer (lead-pt pipe-tp tp-ang *PORT-LEAD*))
+
+      ;; FROM 리드 선분 (체인 끝 → 꺾임 시작점)
+      (if (not (equal fp-outer pipe-fp))
+        (command "._LINE" pipe-fp fp-outer ""))
+
+      ;; TO 리드 선분 (체인 끝 → 꺾임 시작점)
+      (if (not (equal tp-outer pipe-tp))
+        (command "._LINE" pipe-tp tp-outer ""))
+
+      ;; 메인 배관 (fp-outer ↔ tp-outer)
       (if ia
-        (draw-with-inline pipe-fp pipe-tp ia "IN1")
-        (draw-ortho pipe-fp pipe-tp))
+        (draw-with-inline fp-outer tp-outer ia "IN1")
+        (draw-ortho fp-outer tp-outer))
+
+      ;; TEE는 메인 구간 기준으로 등록
       (if tees
         (progn
-          (register-tees pipe-fp pipe-tp tees)
+          (register-tees fp-outer tp-outer tees)
           (foreach tid tees
             (draw-tee-sym (tee-pt tid)))))
+
       (princ (strcat "\n  배관: " pid " [" media "]")))
     (princ (strcat "\n  [건너뜀] " pid))))
 
