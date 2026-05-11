@@ -162,6 +162,6 @@ STR-B01 ── PIPE ──(TEE-B3)── PIPE ── PMP0601-1
 
 ## 7. 스키마 업데이트 필요 사항
 
-- [ ] 모든 엔티티에 `code_key` 필드 추가 (structures, machines, accessories)
-- [ ] 외부 기계 `location`: `structure_id` 제거, `process_id`만 유지
-- [ ] 부속품 `type` → `code_key` 로 변경
+- [x] 모든 엔티티에 `code_key` 필드 추가 (structures, machines, accessories)
+- [x] 외부 기계 `location`: `structure_id` 제거, `process_id`만 유지
+- [x] 부속품 `type` → `code_key` 로 변경

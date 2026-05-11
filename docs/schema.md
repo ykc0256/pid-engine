@@ -49,6 +49,7 @@
 | 필드 | 타입 | 설명 |
 |------|------|------|
 | `id` | string | 고유 식별자 (예: `"STR-01"`) |
+| `code_key` | string | 심볼 코드 (예: `"S_COND01"`) |
 | `name` | string | 구조물명 |
 | `type` | string | 종류 (`"tank"`, `"chamber"`, `"basin"`, `"building"` 등) |
 | `process_id` | string | 소속 공정 ID |
@@ -71,6 +72,7 @@
 | 필드 | 타입 | 설명 |
 |------|------|------|
 | `id` | string | 고유 식별자 (예: `"MCH-01"`) |
+| `code_key` | string | 심볼 코드 (예: `"M_PKA0102"`) |
 | `tag` | string | 엔지니어링 태그 (예: `"P-001"`) |
 | `name` | string | 기계명 |
 | `type` | string | 종류 (`"pump"`, `"blower"`, `"mixer"`, `"screen"` 등) |
@@ -78,12 +80,19 @@
 | `location` | object | 설치 위치 |
 | `ports` | array | 배관 연결 포트 목록 (구조와 동일) |
 
-### location 객체
+### location 객체 — internal (구조물 내부)
 
 | 필드 | 타입 | 설명 |
 |------|------|------|
-| `type` | string | `"internal"` (구조물 내부) 또는 `"external"` (구조물 외부) |
-| `structure_id` | string | 연관 구조물 ID |
+| `type` | string | `"internal"` |
+| `structure_id` | string | 소속 구조물 ID |
+
+### location 객체 — external (구조물 외부)
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| `type` | string | `"external"` |
+| `process_id` | string | 소속 공정 ID |
 
 ---
 
@@ -125,8 +134,8 @@
 
 | 필드 | 타입 | 설명 |
 |------|------|------|
-| `type` | string | 부속품 종류 (`"gate_valve"`, `"check_valve"`, `"butterfly_valve"`, `"strainer"`, `"flange"` 등) |
-| `tag` | string | 엔지니어링 태그 |
+| `code_key` | string | 심볼 코드 (예: `"P_VAV01"`, `"FIT_FLNG"`) |
+| `tag` | string | 엔지니어링 태그 (선택) |
 
 ---
 
