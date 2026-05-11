@@ -83,8 +83,8 @@
 
 ;; ── 포트 variant 치환 ────────────────────────────────────────
 (setq *PORT-VARIANTS*
-  '(("FIT_CONDC" "IN"  "FIT_CONDC_IN")
-    ("FIT_CONDC" "OUT" "FIT_CONDC_OUT")))
+  '(("FIT_CONRDC" "IN"  "FIT_CONRDC_IN")
+    ("FIT_CONRDC" "OUT" "FIT_CONRDC_OUT")))
 
 ;; ── 파이프 데이터 ─────────────────────────────────────────────
 ;; 형식: (pipe-id  from-spec  to-spec  fa  ta  ia  tees  media)
@@ -394,7 +394,7 @@
 
 (defun warm-in1-cache ()
   (foreach bn '("P_VAV01" "P_VAV04" "P_VAV07" "P_VAV03"
-                "FIT_FLNG" "FIT_CONDC_IN" "FIT_CONDC_OUT")
+                "FIT_FLNG" "FIT_CONRDC_IN" "FIT_CONRDC_OUT")
     (get-in1-offset bn))
   (princ "\n  IN1 캐시 워밍 완료"))
 
