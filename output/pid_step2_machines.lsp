@@ -14,14 +14,13 @@
 (setq *MCH-V-GAP*    100)   ; 그룹 내 기계 세로 간격
 (setq *GROUP-H-GAP*  200)   ; 그룹 간 가로 간격 (배관+부속품 공간)
 (setq *ACC-SPACE*    400)   ; 구조물 우측 ~ 첫 기계 좌측 (배관 공간)
-(setq *PROC-GAP*    3000)   ; 공정 간 가로 간격
+(setq *PROC-MARGIN*  500)   ; 공정 간 여백 (앞 공정 마지막 기계 우측 ~ 다음 공정 구조물)
 (setq *LBL-H*         25)   ; 레이블 텍스트 높이 (구조물)
 (setq *LBL-M*         18)   ; 레이블 텍스트 높이 (기계)
 (setq *ORIG-X*          0)
 (setq *ORIG-Y*          0)
 
 ;; 밴드 Y 시작 좌표 (위→아래: 약품/공기/원수/슬러지)
-;; 필요 시 값 조정 후 재실행
 (setq *BAND-Y*
   '(("chemical" .  1200)   ; 약품 (현재 데이터 없음)
     ("air"      .   600)   ; 공기
@@ -33,7 +32,6 @@
 (setq *PROCESSES* '("PROC-A" "PROC-B"))
 
 ;; ── 구조물 데이터 ─────────────────────────────────────────────
-;; (str-id  code_key  proc-id  group-no)
 (setq *STRUCTURES*
   '(("STR-A01" "S_COND01" "PROC-A" 1)
     ("STR-A02" "S_COND01" "PROC-A" 1)
@@ -41,10 +39,6 @@
 
 ;; ── 기계 데이터 (외부 기계) ───────────────────────────────────
 ;; (id  code_key  proc-id  band  group-id  order-in-group  group-order-in-band)
-;;
-;; band             : "chemical" / "air" / "sewage" / "sludge"
-;; order-in-group   : 그룹 내 위→아래 순서 (0-based)
-;; group-order-in-band : 밴드 내 그룹 좌→우 순서 (0-based)
 (setq *MACHINES*
   '(
     ; ── A공정 / 공기 밴드 ──────────────────────────────────────
@@ -81,13 +75,6 @@
 
 ;; ── 유틸리티 ─────────────────────────────────────────────────
 
-(defun proc-idx (pid / i result)
-  (setq i 0  result 0)
-  (foreach p *PROCESSES*
-    (if (equal p pid) (setq result i))
-    (setq i (1+ i)))
-  result)
-
 (defun get-cnt (tbl key / rec)
   (setq rec (assoc key tbl))
   (if rec (cdr rec) 0))
@@ -101,6 +88,38 @@
   (setq rec (assoc band *BAND-Y*))
   (if rec (cdr rec) 0))
 
+(defun get-proc-x (pid / rec)
+  (setq rec (assoc pid *PROC-X*))
+  (if rec (cdr rec) 0))
+
+;; 공정별 X 시작 좌표 동적 계산
+;; 각 공정 폭 = STR-W + ACC-SPACE + (최대 grp-ord + 1) × (MCH-W + GROUP-H-GAP)
+;; 다음 공정 시작 = 현재 공정 폭 우측 끝 + PROC-MARGIN
+(defun compute-proc-x (/ proc-max pid grp-ord cur x w)
+  ;; 공정별 최대 grp-ord 수집
+  (setq proc-max '())
+  (foreach mch *MACHINES*
+    (setq pid     (nth 2 mch)
+          grp-ord (nth 6 mch))
+    (setq cur (get-cnt proc-max pid))
+    (if (> grp-ord cur)
+      (setq proc-max (set-cnt proc-max pid grp-ord))))
+
+  ;; 순서대로 X 누적
+  (setq x *ORIG-X*  *PROC-X* '())
+  (foreach p *PROCESSES*
+    (setq *PROC-X* (set-cnt *PROC-X* p x))
+    ;; 이 공정의 가장 오른쪽 기계 우측 끝 X
+    (setq w (+ *STR-W* *ACC-SPACE*
+               (* (1+ (get-cnt proc-max p))
+                  (+ *MCH-W* *GROUP-H-GAP*))))
+    (setq x (+ x w *PROC-MARGIN*)))
+
+  (princ (strcat "\n  PROC-A 시작 X: "
+                 (rtos (get-proc-x "PROC-A") 2 0)))
+  (princ (strcat "\n  PROC-B 시작 X: "
+                 (rtos (get-proc-x "PROC-B") 2 0))))
+
 ;; ── 구조물 배치 ───────────────────────────────────────────────
 (defun place-structures (/ tbl str-id ckey pid grp key cnt x y)
   (setq tbl '())
@@ -112,7 +131,7 @@
           grp    (nth 3 str)
           key    (strcat pid "_" (itoa grp))
           cnt    (get-cnt tbl key))
-    (setq x (+ *ORIG-X* (* (proc-idx pid) *PROC-GAP*)))
+    (setq x (get-proc-x pid))
     (setq y (- *ORIG-Y* (* cnt (+ *STR-H* *STR-GAP*))))
     (command "._INSERT" ckey (list x y) 1 1 0)
     (command "._TEXT"
@@ -135,7 +154,7 @@
           ord     (nth 5 mch)
           grp-ord (nth 6 mch))
 
-    (setq proc-x (+ *ORIG-X* (* (proc-idx pid) *PROC-GAP*)))
+    (setq proc-x (get-proc-x pid))
 
     ;; X: 공정 시작 + 구조물 가로 + 공간 + (그룹순서 × 그룹폭)
     (setq x (+ proc-x
@@ -143,7 +162,7 @@
                *ACC-SPACE*
                (* grp-ord (+ *MCH-W* *GROUP-H-GAP*))))
 
-    ;; Y: 밴드 시작 Y - (그룹 내 순서 × 기계 피치)
+    ;; Y: 밴드 기준 Y - (그룹 내 순서 × 기계 피치)
     (setq y (- (band-y band)
                (* ord (+ *MCH-H* *MCH-V-GAP*))))
 
@@ -161,6 +180,8 @@
 (defun c:PID-STEP2 ()
   (command "._UNDO" "BE")
   (setvar "CMDECHO" 0)
+  (princ "\n[Step2] 공정 X 좌표 계산...\n")
+  (compute-proc-x)
   (princ "\n[Step2] 구조물 배치...\n")
   (place-structures)
   (princ "\n[Step2] 기계 배치...\n")
