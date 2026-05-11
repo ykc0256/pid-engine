@@ -59,9 +59,11 @@
 
 | 필드 | 타입 | 설명 |
 |------|------|------|
-| `id` | string | 포트 식별자 (예: `"IN1"`, `"OUT1"`) |
+| `id` | string | 포트 식별자 (예: `"IN1"`, `"OUT1"`) — CAD 블록 attribute TAG와 동일한 이름 사용 |
 | `label` | string | 포트 명칭 |
 | `direction` | string | `"in"` 또는 `"out"` |
+
+> **CAD 연동 규칙**: `id` 값은 해당 CAD 블록 내 invisible attribute의 TAG 이름과 반드시 일치해야 한다. 포트 좌표는 JSON에 저장하지 않으며, CAD 블록 attribute의 삽입점(insertion point)이 노즐 좌표로 사용된다.
 
 ---
 
@@ -78,7 +80,7 @@
 | `type` | string | 종류 (`"pump"`, `"blower"`, `"mixer"`, `"screen"` 등) |
 | `process_id` | string | 소속 공정 ID |
 | `location` | object | 설치 위치 |
-| `ports` | array | 배관 연결 포트 목록 (구조와 동일) |
+| `ports` | array | 배관 연결 포트 목록 (structures ports 항목과 동일, CAD 연동 규칙 동일 적용) |
 
 ### location 객체 — internal (구조물 내부)
 
@@ -189,3 +191,44 @@
 | TEE | `TEE-` | `TEE-01` |
 | Pipe | `PIPE-` | `PIPE-01` |
 | Instrument | `INST-` | `INST-01` |
+
+---
+
+## CAD 블록 설계 규칙
+
+### 블록 이름
+
+`code_key` 값을 CAD 블록 이름으로 사용한다.
+
+| JSON 필드 | CAD 블록 |
+|-----------|----------|
+| `code_key: "M_PKA0102"` | 블록명: `M_PKA0102` |
+| `code_key: "S_COND01"` | 블록명: `S_COND01` |
+| `code_key: "P_VAV01"` | 블록명: `P_VAV01` |
+
+### 노즐(포트) 표현 방식
+
+각 블록 내부에 노즐 위치마다 **invisible attribute**를 배치한다.
+
+| 항목 | 규칙 |
+|------|------|
+| Attribute TAG | JSON `port.id`와 동일 (`IN1`, `OUT1`, `IN2` 등) |
+| Attribute 가시성 | **Invisible** (도면에 표시 안 됨) |
+| 배치 위치 | 노즐 중심점에 정확히 클릭하여 배치 |
+| 좌표 기준 | Attribute **삽입점(insertion point)** = 노즐 좌표 |
+
+### LISP 엔진의 좌표 추출 방식
+
+```
+① 블록 삽입 (레이아웃 규칙에 따라 결정된 위치에 배치)
+② 블록 내 attribute 중 TAG = port.id 인 것 검색
+③ 해당 attribute의 insertion point 추출 → 노즐 좌표
+④ 노즐 좌표 기준으로 부속품 및 배관 연결
+```
+
+### 포트 이름 규칙
+
+| 이름 | 의미 |
+|------|------|
+| `IN1`, `IN2`, ... | 유입 노즐 (복수일 경우 번호 부여) |
+| `OUT1`, `OUT2`, ... | 유출 노즐 (복수일 경우 번호 부여) |
