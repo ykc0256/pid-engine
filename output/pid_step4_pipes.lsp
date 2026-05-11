@@ -1,8 +1,78 @@
 ;;; ============================================================
-;;; PID-ENGINE  Step 4 — 배관 + 부속품 통합 생성
-;;; 전제: pid_step2_machines.lsp 로드 + PID-STEP2 실행 완료
-;;; 실행: (load "전체경로/pid_step4_pipes.lsp") 후 PID-STEP4
+;;; PID-ENGINE  Step 4 — 전체 통합 (구조물·기계·배관·부속품)
+;;; 이 파일 하나만 로드하면 PID-STEP4 한 번으로 전부 생성됨
+;;; 실행: (load "전체경로/pid_step4_pipes.lsp") → PID-STEP4
 ;;; ============================================================
+
+;; ── 레이아웃 상수 ────────────────────────────────────────────
+(setq *STR-W*        200)
+(setq *STR-H*        100)
+(setq *STR-GAP*      300)
+(setq *MCH-W*         60)
+(setq *MCH-H*         60)
+(setq *MCH-V-GAP*    100)
+(setq *GROUP-H-GAP*  200)
+(setq *ACC-SPACE*    400)
+(setq *PROC-MARGIN*  500)
+(setq *LBL-H*         25)
+(setq *LBL-M*         18)
+(setq *ORIG-X*          0)
+(setq *ORIG-Y*          0)
+
+;; ── 밴드 Y (위→아래: 약품/공기/원수/슬러지) ─────────────────
+(setq *BAND-Y*
+  '(("chemical" . 1200)
+    ("air"      .  600)
+    ("sewage"   .    0)
+    ("sludge"   . -600)))
+
+;; ── 공정 순서 ────────────────────────────────────────────────
+(setq *PROCESSES* '("PROC-A" "PROC-B"))
+
+;; ── 구조물 데이터 ─────────────────────────────────────────────
+(setq *STRUCTURES*
+  '(("STR-A01" "S_COND01" "PROC-A" 1)
+    ("STR-A02" "S_COND01" "PROC-A" 1)
+    ("STR-B01" "S_COND01" "PROC-B" 1)))
+
+;; ── 외부 기계 데이터 ──────────────────────────────────────────
+;; (id  code_key  proc-id  band  group-id  order-in-group  group-order-in-band)
+(setq *MACHINES*
+  '(
+    ("MCH-A11" "M_AEB0101" "PROC-A" "air"    "AEB0101"    0  0)
+    ("MCH-A12" "M_AEB0101" "PROC-A" "air"    "AEB0101"    1  0)
+    ("MCH-A13" "M_AEB0101" "PROC-A" "air"    "AEB0101"    2  0)
+    ("MCH-A14" "M_PKA0103" "PROC-A" "air"    "PKA0103"    0  1)
+    ("MCH-A15" "M_PKA0103" "PROC-A" "air"    "PKA0103"    1  1)
+    ("MCH-A16" "M_PKA0103" "PROC-A" "air"    "PKA0103"    2  1)
+
+    ("MCH-A01" "M_VAV0101" "PROC-A" "sewage" "VAV0101"    0  0)
+    ("MCH-A02" "M_VAV0101" "PROC-A" "sewage" "VAV0101"    1  0)
+
+    ("MCH-A03" "M_PKA0102" "PROC-A" "sludge" "PKA0102-G1" 0  0)
+    ("MCH-A04" "M_PKA0102" "PROC-A" "sludge" "PKA0102-G1" 1  0)
+    ("MCH-A05" "M_PKA0102" "PROC-A" "sludge" "PKA0102-G1" 2  0)
+    ("MCH-A06" "M_BRX01"   "PROC-A" "sludge" "BRX01"      0  1)
+    ("MCH-A07" "M_BRX01"   "PROC-A" "sludge" "BRX01"      1  1)
+    ("MCH-A08" "M_PKA0102" "PROC-A" "sludge" "PKA0102-G2" 0  2)
+    ("MCH-A09" "M_PKA0102" "PROC-A" "sludge" "PKA0102-G2" 1  2)
+    ("MCH-A10" "M_PKA0102" "PROC-A" "sludge" "PKA0102-G2" 2  2)
+
+    ("MCH-B01" "M_PMP0602" "PROC-B" "sewage" "PMP0602"    0  0)
+    ("MCH-B02" "M_PMP0602" "PROC-B" "sewage" "PMP0602"    1  0)
+    ("MCH-B03" "M_PMP0602" "PROC-B" "sewage" "PMP0602"    2  0)
+
+    ("MCH-B04" "M_PMP0601" "PROC-B" "sludge" "PMP0601"    0  0)
+    ("MCH-B05" "M_PMP0601" "PROC-B" "sludge" "PMP0601"    1  0)
+  ))
+
+;; ── 내부 기계 데이터 ──────────────────────────────────────────
+;; (mch-id  code_key  str-id  slot-tag)
+(setq *INT-MACHINES*
+  '(("MCH-A17" "M_FDC01"  "STR-A01" "M_FDCT")
+    ("MCH-A18" "M_TDIF04" "STR-A01" "M_TDIF")
+    ("MCH-A19" "M_FDC01"  "STR-A02" "M_FDCT")
+    ("MCH-A20" "M_TDIF04" "STR-A02" "M_TDIF")))
 
 ;; ── media 레이어/색상 ────────────────────────────────────────
 (setq *MEDIA-LAYERS*
@@ -11,7 +81,7 @@
     ("air"      "PID-AIR"      7)
     ("chemical" "PID-CHEMICAL" 6)))
 
-;; ── 포트 variant 치환 (code_key + IN/OUT → 실제 블록명) ─────
+;; ── 포트 variant 치환 ────────────────────────────────────────
 (setq *PORT-VARIANTS*
   '(("FIT_CONDC" "IN"  "FIT_CONDC_IN")
     ("FIT_CONDC" "OUT" "FIT_CONDC_OUT")))
@@ -19,27 +89,195 @@
 ;; ── 파이프 데이터 ─────────────────────────────────────────────
 ;; 형식: (pipe-id  from-spec  to-spec  fa  ta  ia  tees  media)
 ;; from/to-spec:
-;;   ("S" str-id  port-id)
-;;   ("M" mch-id  port-id)
-;;   ("T" tee-id)           ; 기등록 TEE
+;;   ("S" str-id  port-id)   구조물 포트
+;;   ("M" mch-id  port-id)   기계 포트
+;;   ("T" tee-id)            기등록 TEE
 ;; fa/ta/ia: (code_key ...) 또는 nil
 ;; tees:     (tee-id ...) 또는 nil
-
 (setq *PIPES*
   '(
-    ;; ─ Pass 1 ────────────────────────────────────────────────
+    ;; ─ Pass 1: TEE 의존성 없음 ────────────────────────────────
+
+    ;; A공정 슬러지 순환 Seg1: STR → PKA0102-G1 흡입
     ("PIPE-A01"
      ("S" "STR-A01" "OUT1") ("M" "MCH-A03" "IN1")
      ("P_VAV01" "FIT_FLNG") ("P_VAV07" "P_VAV01" "FIT_FLNG")
      nil ("TEE-A1-1") "sludge")
+    ("PIPE-A02"
+     ("S" "STR-A02" "OUT1") ("M" "MCH-A05" "IN1")
+     ("P_VAV01" "FIT_FLNG") ("P_VAV07" "P_VAV01" "FIT_FLNG")
+     nil ("TEE-A1-2") "sludge")
+
+    ;; A공정 슬러지 순환 Seg2: PKA0102-G1 토출 → BRX01
+    ("PIPE-A05"
+     ("M" "MCH-A03" "OUT1") ("M" "MCH-A06" "IN1")
+     ("P_VAV07" "P_VAV04" "P_VAV01" "FIT_FLNG") nil
+     nil ("TEE-A2-1") "sludge")
+    ("PIPE-A06"
+     ("M" "MCH-A05" "OUT1") ("M" "MCH-A07" "IN1")
+     ("P_VAV07" "P_VAV04" "P_VAV01" "FIT_FLNG") nil
+     nil ("TEE-A2-2") "sludge")
+
+    ;; A공정 슬러지 순환 Seg3: BRX01 출구 → PKA0102-G2 흡입
+    ("PIPE-A09"
+     ("M" "MCH-A06" "OUT1") ("M" "MCH-A08" "IN1")
+     nil ("P_VAV07" "P_VAV01" "FIT_FLNG")
+     nil ("TEE-A3-1") "sludge")
+    ("PIPE-A10"
+     ("M" "MCH-A07" "OUT1") ("M" "MCH-A10" "IN1")
+     nil ("P_VAV07" "P_VAV01" "FIT_FLNG")
+     nil ("TEE-A3-2") "sludge")
+
+    ;; A공정 슬러지 순환 Seg4: PKA0102-G2 토출 → STR
+    ("PIPE-A13"
+     ("M" "MCH-A08" "OUT1") ("S" "STR-A01" "IN1")
+     ("P_VAV07" "P_VAV04" "P_VAV01" "FIT_FLNG") ("FIT_FLNG" "P_VAV01")
+     nil ("TEE-A4-1") "sludge")
+    ("PIPE-A14"
+     ("M" "MCH-A10" "OUT1") ("S" "STR-A02" "IN1")
+     ("P_VAV07" "P_VAV04" "P_VAV01" "FIT_FLNG") ("FIT_FLNG" "P_VAV01")
+     nil ("TEE-A4-2") "sludge")
+
+    ;; A공정 공기: AEB0101 → TDIF04
+    ("PIPE-A17"
+     ("M" "MCH-A11" "OUT1") ("M" "MCH-A18" "IN1")
+     ("P_VAV07" "P_VAV04" "P_VAV03" "FIT_FLNG") nil
+     nil ("TEE-A5-1") "air")
+    ("PIPE-A18"
+     ("M" "MCH-A13" "OUT1") ("M" "MCH-A20" "IN1")
+     ("P_VAV07" "P_VAV04" "P_VAV03" "FIT_FLNG") nil
+     nil ("TEE-A5-2") "air")
+
+    ;; A공정 공기: PKA0103 → BRX01
+    ("PIPE-A21"
+     ("M" "MCH-A14" "OUT1") ("M" "MCH-A06" "IN2")
+     ("P_VAV07" "P_VAV04" "P_VAV03" "FIT_FLNG") nil
+     nil ("TEE-A6-1") "air")
+    ("PIPE-A22"
+     ("M" "MCH-A16" "OUT1") ("M" "MCH-A07" "IN2")
+     ("P_VAV07" "P_VAV04" "P_VAV03" "FIT_FLNG") nil
+     nil ("TEE-A6-2") "air")
+
+    ;; A공정 원수: FDC01 → VAV0101 (직결, 부속품 없음)
+    ("PIPE-A25"
+     ("M" "MCH-A17" "OUT1") ("M" "MCH-A01" "IN1")
+     nil nil nil nil "sewage")
+    ("PIPE-A26"
+     ("M" "MCH-A19" "OUT1") ("M" "MCH-A02" "IN1")
+     nil nil nil nil "sewage")
+
+    ;; B공정 원수: STR-B01 → PMP0602 흡입 매니폴드
+    ("PIPE-B01"
+     ("S" "STR-B01" "OUT1") ("M" "MCH-B03" "IN1")
+     ("P_VAV01" "FIT_FLNG") ("P_VAV07" "P_VAV01" "FIT_FLNG")
+     nil ("TEE-B2") "sewage")
+
+    ;; B공정 슬러지: STR-B01 → PMP0601 흡입
+    ("PIPE-B04"
+     ("S" "STR-B01" "OUT2") ("M" "MCH-B04" "IN1")
+     ("P_VAV01" "FIT_FLNG") ("P_VAV07" "P_VAV01" "FIT_FLNG")
+     nil ("TEE-B3") "sludge")
+
+    ;; ─ Pass 2: Pass 1 TEE 의존 ────────────────────────────────
+
+    ;; A공정 슬러지 Seg1 예비 연결
+    ("PIPE-A03"
+     ("T" "TEE-A1-1") ("T" "TEE-A1-2")
+     nil nil
+     ("FIT_FLNG" "P_VAV01" "FIT_FLNG") ("TEE-A1-3") "sludge")
+
+    ;; A공정 슬러지 Seg2 예비 연결
+    ("PIPE-A07"
+     ("T" "TEE-A2-1") ("T" "TEE-A2-2")
+     nil nil
+     ("FIT_FLNG" "P_VAV01" "FIT_FLNG") ("TEE-A2-3") "sludge")
+
+    ;; A공정 슬러지 Seg3 예비 연결
+    ("PIPE-A11"
+     ("T" "TEE-A3-1") ("T" "TEE-A3-2")
+     nil nil
+     ("FIT_FLNG" "P_VAV01" "FIT_FLNG") ("TEE-A3-3") "sludge")
+
+    ;; A공정 슬러지 Seg4 예비 연결
+    ("PIPE-A15"
+     ("T" "TEE-A4-1") ("T" "TEE-A4-2")
+     nil nil
+     ("FIT_FLNG" "P_VAV01" "FIT_FLNG") ("TEE-A4-3") "sludge")
+
+    ;; A공정 공기 AEB0101 예비 연결
+    ("PIPE-A19"
+     ("T" "TEE-A5-1") ("T" "TEE-A5-2")
+     nil nil
+     ("FIT_FLNG" "P_VAV04" "FIT_FLNG") ("TEE-A5-3") "air")
+
+    ;; A공정 공기 PKA0103 예비 연결
+    ("PIPE-A23"
+     ("T" "TEE-A6-1") ("T" "TEE-A6-2")
+     nil nil
+     ("FIT_FLNG" "P_VAV04" "FIT_FLNG") ("TEE-A6-3") "air")
+
+    ;; B공정 원수 매니폴드 PMP0602-1 분기
+    ("PIPE-B02"
+     ("T" "TEE-B2") ("M" "MCH-B01" "IN1")
+     nil ("P_VAV07" "P_VAV01" "FIT_FLNG")
+     ("FIT_FLNG" "P_VAV01" "FIT_FLNG") ("TEE-B1") "sewage")
+
+    ;; B공정 슬러지 PMP0601-2 분기
+    ("PIPE-B05"
+     ("T" "TEE-B3") ("M" "MCH-B05" "IN1")
+     nil ("P_VAV07" "FIT_FLNG")
+     nil nil "sludge")
+
+    ;; ─ Pass 3: Pass 2 TEE 의존 ────────────────────────────────
+
+    ;; A공정 슬러지 Seg1 예비 → PKA0102-G1-2
+    ("PIPE-A04"
+     ("T" "TEE-A1-3") ("M" "MCH-A04" "IN1")
+     nil ("P_VAV07" "FIT_FLNG")
+     nil nil "sludge")
+
+    ;; A공정 슬러지 Seg2 예비 ← PKA0102-G1-2 토출
+    ("PIPE-A08"
+     ("M" "MCH-A04" "OUT1") ("T" "TEE-A2-3")
+     ("P_VAV07" "P_VAV04" "FIT_FLNG") nil
+     nil nil "sludge")
+
+    ;; A공정 슬러지 Seg3 예비 → PKA0102-G2-2
+    ("PIPE-A12"
+     ("T" "TEE-A3-3") ("M" "MCH-A09" "IN1")
+     nil ("P_VAV07" "FIT_FLNG")
+     nil nil "sludge")
+
+    ;; A공정 슬러지 Seg4 예비 ← PKA0102-G2-2 토출
+    ("PIPE-A16"
+     ("M" "MCH-A09" "OUT1") ("T" "TEE-A4-3")
+     ("P_VAV07" "P_VAV04" "FIT_FLNG") nil
+     nil nil "sludge")
+
+    ;; A공정 공기 예비 AEB0101-2 → 매니폴드
+    ("PIPE-A20"
+     ("M" "MCH-A12" "OUT1") ("T" "TEE-A5-3")
+     ("P_VAV07" "P_VAV04" "FIT_FLNG") nil
+     nil nil "air")
+
+    ;; A공정 공기 예비 PKA0103-2 → 매니폴드
+    ("PIPE-A24"
+     ("M" "MCH-A15" "OUT1") ("T" "TEE-A6-3")
+     ("P_VAV07" "P_VAV04" "FIT_FLNG") nil
+     nil nil "air")
+
+    ;; B공정 원수 매니폴드 PMP0602-2 분기
+    ("PIPE-B03"
+     ("T" "TEE-B1") ("M" "MCH-B02" "IN1")
+     nil ("P_VAV07" "FIT_FLNG")
+     nil nil "sewage")
   ))
 
-;; ▲▲▲ 테스트 통과 후 나머지 파이프 추가 예정 ▲▲▲
-
-;; ── TEE 레지스트리 ───────────────────────────────────────────
-(setq *TEE-PTS*  '())
-(setq *IN1-CACHE* '())
+;; ── 전역 레지스트리 ──────────────────────────────────────────
+(setq *TEE-PTS*    '())
+(setq *IN1-CACHE*  '())
 (setq *ENAME-CACHE* '())
+(setq *PROC-X*     '())
 
 ;; ============================================================
 ;; 유틸리티
@@ -54,7 +292,51 @@
     (subst (cons key val) (assoc key tbl) tbl)
     (cons (cons key val) tbl)))
 
-;; Attribute DXF code 조회 (code=10→위치, code=1→값)
+;; ============================================================
+;; 레이아웃 함수 (Step 2)
+;; ============================================================
+
+(defun band-y (band / rec)
+  (setq rec (assoc band *BAND-Y*))
+  (if rec (cdr rec) 0))
+
+(defun get-proc-x (pid / rec)
+  (setq rec (assoc pid *PROC-X*))
+  (if rec (cdr rec) 0))
+
+(defun compute-proc-x (/ proc-max pid grp-ord cur x w)
+  (setq proc-max '())
+  (foreach mch *MACHINES*
+    (setq pid     (nth 2 mch)
+          grp-ord (nth 6 mch))
+    (setq cur (get-cnt proc-max pid))
+    (if (> grp-ord cur)
+      (setq proc-max (set-cnt proc-max pid grp-ord))))
+  (setq x *ORIG-X*  *PROC-X* '())
+  (foreach p *PROCESSES*
+    (setq *PROC-X* (set-cnt *PROC-X* p x))
+    (setq w (+ *STR-W* *ACC-SPACE*
+               (* (1+ (get-cnt proc-max p))
+                  (+ *MCH-W* *GROUP-H-GAP*))))
+    (setq x (+ x w *PROC-MARGIN*)))
+  (princ (strcat "\n  PROC-A X: " (rtos (get-proc-x "PROC-A") 2 0)
+                 "  PROC-B X: " (rtos (get-proc-x "PROC-B") 2 0))))
+
+(defun str-insert-pt (target-id / tbl cnt key str result)
+  (setq tbl '()  result nil)
+  (foreach str *STRUCTURES*
+    (setq key (strcat (nth 2 str) "_" (itoa (nth 3 str)))
+          cnt (get-cnt tbl key))
+    (if (equal (nth 0 str) target-id)
+      (setq result (list (get-proc-x (nth 2 str))
+                         (- *ORIG-Y* (* cnt (+ *STR-H* *STR-GAP*))))))
+    (setq tbl (set-cnt tbl key (1+ cnt))))
+  result)
+
+;; ============================================================
+;; 수학 / 각도 유틸리티 (Step 4)
+;; ============================================================
+
 (defun get-attr (blk-en tag dxf / en ed result)
   (setq en (entnext blk-en)  result nil)
   (while (and en (not result))
@@ -69,7 +351,6 @@
       (T (setq en (entnext en)))))
   result)
 
-;; 포트 방향 각도 (정수) 반환
 (defun port-ang (ent-id port-id / en val)
   (setq en (cdr (assoc ent-id *ENAME-CACHE*)))
   (if en
@@ -78,30 +359,14 @@
       (if val (atoi val) 0))
     0))
 
-;; 각도 → (dx dy) 단위벡터
-(defun dir-vec (ang / a)
-  (setq a (if (numberp ang) ang (atoi ang)))
-  (cond ((= a 0)   '( 1.0  0.0))
-        ((= a 90)  '( 0.0  1.0))
-        ((= a 180) '(-1.0  0.0))
-        ((= a 270) '( 0.0 -1.0))
-        (T         '( 1.0  0.0))))
-
-;; (ox oy) 벡터를 ang 도 회전
 (defun rot-off (ox oy ang / a)
   (setq a (if (numberp ang) ang (atoi ang)))
-  (cond ((= a 0)   (list ox        oy))
-        ((= a 90)  (list (- oy)    ox))
-        ((= a 180) (list (- ox)    (- oy)))
-        ((= a 270) (list oy        (- ox)))
-        (T         (list ox        oy))))
+  (cond ((= a 0)   (list ox      oy))
+        ((= a 90)  (list (- oy)  ox))
+        ((= a 180) (list (- ox)  (- oy)))
+        ((= a 270) (list oy      (- ox)))
+        (T         (list ox      oy))))
 
-;; 두 점 사이 거리
-(defun pt-dist (a b)
-  (sqrt (+ (* (- (car b) (car a)) (- (car b) (car a)))
-           (* (- (cadr b) (cadr a)) (- (cadr b) (cadr a))))))
-
-;; fp→tp 의 주 방향 각도
 (defun dom-ang (fp tp / dx dy)
   (setq dx (- (car tp) (car fp))
         dy (- (cadr tp) (cadr fp)))
@@ -112,7 +377,6 @@
 ;; 블록 IN1 오프셋 캐시
 ;; ============================================================
 
-;; block-name을 (0,0) 에 임시 삽입 → IN1 위치 취득 → UNDO → 캐시
 (defun get-in1-offset (block-name / rec en in1-pt)
   (setq rec (assoc block-name *IN1-CACHE*))
   (if rec
@@ -120,7 +384,7 @@
     (progn
       (setvar "ATTREQ" 0)
       (command "._INSERT" block-name '(0.0 0.0) 1 1 0)
-      (setq en (entlast)
+      (setq en     (entlast)
             in1-pt (get-attr en "IN1" 10))
       (command "._U")
       (setvar "ATTREQ" 1)
@@ -128,7 +392,6 @@
       (setq *IN1-CACHE* (cons (cons block-name in1-pt) *IN1-CACHE*))
       in1-pt)))
 
-;; 캐시 사전 워밍 (UNDO BE 전에 호출 — 임시 삽입이 메인 UNDO에 포함 안 되도록)
 (defun warm-in1-cache ()
   (foreach bn '("P_VAV01" "P_VAV04" "P_VAV07" "P_VAV03"
                 "FIT_FLNG" "FIT_CONDC_IN" "FIT_CONDC_OUT")
@@ -136,10 +399,9 @@
   (princ "\n  IN1 캐시 워밍 완료"))
 
 ;; ============================================================
-;; 부속품 배치
+;; 부속품 체인
 ;; ============================================================
 
-;; code_key + 포트 종류(IN/OUT) → 실제 블록명 반환
 (defun resolve-blk (ckey port-id / ptype rec)
   (setq ptype
     (cond ((equal (substr port-id 1 3) "OUT") "OUT")
@@ -152,9 +414,6 @@
       (setq rec row)))
   (if rec (nth 2 rec) ckey))
 
-;; 부속품 블록 1개 배치 → OUT1 위치 반환
-;; chain-pt : IN1을 놓을 세계좌표
-;; ang      : 파이프 방향 각도 (정수)
 (defun place-acc (block-name chain-pt ang / off roff ins en out1)
   (setq off  (get-in1-offset block-name)
         roff (rot-off (car off) (cadr off) ang)
@@ -163,12 +422,10 @@
   (setvar "ATTREQ" 0)
   (command "._INSERT" block-name ins 1 1 ang)
   (setvar "ATTREQ" 1)
-  (setq en (entlast))
-  ; OUT1 위치 반환 (다음 체인 포인트)
-  (setq out1 (get-attr en "OUT1" 10))
+  (setq en   (entlast)
+        out1 (get-attr en "OUT1" 10))
   (if out1 out1 chain-pt))
 
-;; 부속품 체인 전체 배치 → 최종 pt 반환
 (defun place-chain (chain-pt ang port-id acc-list / pt)
   (setq pt chain-pt)
   (foreach ckey acc-list
@@ -183,7 +440,6 @@
   (setq rec (assoc tee-id *TEE-PTS*))
   (if rec (cdr rec) nil))
 
-;; TEE 위치 = 직각 라우팅의 elbow (to.x, from.y)
 (defun elbow-pt (fp tp)
   (list (car tp) (cadr fp)))
 
@@ -202,7 +458,7 @@
   (command "._CIRCLE" (list (car pt) (cadr pt)) 8))
 
 ;; ============================================================
-;; 엔티티 캐시 (Step 2 함수 재사용)
+;; 엔티티 캐시
 ;; ============================================================
 
 (defun get-slot-pt (blk-en tag / en ed result)
@@ -287,8 +543,6 @@
       (if (null pt) (princ (strcat "\n  [경고] " ent-id "." port-id " 없음")))
       pt)))
 
-;; from/to 스펙 → 좌표 + 각도 반환 (list pt ang)
-;; TEE: (pt nil)  entity: (pt ang)
 (defun resolve-spec (spec / type pt ang)
   (setq type (nth 0 spec))
   (cond
@@ -299,6 +553,107 @@
     ((equal type "T")
      (list (tee-pt (nth 1 spec)) nil))
     (T (list nil nil))))
+
+;; ============================================================
+;; 배치 함수 (Step 2)
+;; ============================================================
+
+(defun place-structures (/ tbl str-id ckey pid grp key cnt x y)
+  (setq tbl '())
+  (setvar "ATTREQ" 0)
+  (foreach str *STRUCTURES*
+    (setq str-id (nth 0 str)
+          ckey   (nth 1 str)
+          pid    (nth 2 str)
+          grp    (nth 3 str)
+          key    (strcat pid "_" (itoa grp))
+          cnt    (get-cnt tbl key))
+    (setq x (get-proc-x pid))
+    (setq y (- *ORIG-Y* (* cnt (+ *STR-H* *STR-GAP*))))
+    (command "._INSERT" ckey (list x y) 1 1 0)
+    (command "._TEXT"
+             (list (+ x 5) (+ y *STR-H* 10))
+             *LBL-H* 0 str-id)
+    (setq tbl (set-cnt tbl key (1+ cnt)))
+    (princ (strcat "\n  구조물: " str-id
+                   "  (" (rtos x 2 0) ", " (rtos y 2 0) ")")))
+  (setvar "ATTREQ" 1))
+
+(defun place-machines (/ mch-id ckey pid band grp-id ord grp-ord x y)
+  (setvar "ATTREQ" 0)
+  (foreach mch *MACHINES*
+    (setq mch-id  (nth 0 mch)
+          ckey    (nth 1 mch)
+          pid     (nth 2 mch)
+          band    (nth 3 mch)
+          grp-id  (nth 4 mch)
+          ord     (nth 5 mch)
+          grp-ord (nth 6 mch))
+    (setq x (+ (get-proc-x pid) *STR-W* *ACC-SPACE*
+               (* grp-ord (+ *MCH-W* *GROUP-H-GAP*))))
+    (setq y (- (band-y band) (* ord (+ *MCH-H* *MCH-V-GAP*))))
+    (command "._INSERT" ckey (list x y) 1 1 0)
+    (command "._TEXT"
+             (list (+ x 2) (+ y *MCH-H* 8))
+             *LBL-M* 0 mch-id)
+    (princ (strcat "\n  외부기계: " mch-id
+                   "  (" (rtos x 2 0) ", " (rtos y 2 0) ")")))
+  (setvar "ATTREQ" 1))
+
+(defun find-str-ename (str-id / pt ss i en ed ins found)
+  (setq pt (str-insert-pt str-id)  found nil)
+  (if (null pt)
+    (princ (strcat "\n  [경고] " str-id " 삽입점 계산 실패"))
+    (progn
+      (setq ss (ssget "X" '((0 . "INSERT"))))
+      (if ss
+        (progn
+          (setq i 0)
+          (while (and (< i (sslength ss)) (not found))
+            (setq en  (ssname ss i)
+                  ed  (entget en)
+                  ins (cdr (assoc 10 ed)))
+            (if (and (< (abs (- (car  ins) (car  pt))) 1.0)
+                     (< (abs (- (cadr ins) (cadr pt))) 1.0))
+              (setq found en)
+              (setq i (1+ i))))))))
+  found)
+
+(defun place-internal-machines (/ mch-id ckey str-id slot-tag blk-en pt)
+  (setvar "ATTREQ" 0)
+  (foreach mch *INT-MACHINES*
+    (setq mch-id   (nth 0 mch)
+          ckey     (nth 1 mch)
+          str-id   (nth 2 mch)
+          slot-tag (nth 3 mch))
+    (setq blk-en (find-str-ename str-id))
+    (if (null blk-en)
+      (princ (strcat "\n  [경고] " str-id " 블록 없음 — " mch-id " 건너뜀"))
+      (progn
+        (setq pt (get-slot-pt blk-en slot-tag))
+        (if (null pt)
+          (princ (strcat "\n  [경고] " str-id " 슬롯 '" slot-tag "' 없음 — " mch-id " 건너뜀"))
+          (progn
+            (command "._INSERT" ckey (list (car pt) (cadr pt)) 1 1 0)
+            (command "._TEXT"
+                     (list (+ (car pt) 2) (+ (cadr pt) 35))
+                     *LBL-M* 0 mch-id)
+            (princ (strcat "\n  내부기계: " mch-id
+                           "  슬롯=" slot-tag)))))))
+  (setvar "ATTREQ" 1))
+
+;; ============================================================
+;; 레이어
+;; ============================================================
+
+(defun init-layers ()
+  (foreach rec *MEDIA-LAYERS*
+    (if (null (tblsearch "LAYER" (nth 1 rec)))
+      (command "._-LAYER" "N" (nth 1 rec) "C" (itoa (nth 2 rec)) (nth 1 rec) ""))))
+
+(defun set-media-layer (media / rec)
+  (setq rec (assoc media *MEDIA-LAYERS*))
+  (setvar "CLAYER" (if rec (nth 1 rec) "0")))
 
 ;; ============================================================
 ;; 배관 그리기
@@ -315,36 +670,17 @@
      (setq elbow (list (car tp) (cadr fp)))
      (command "._PLINE" fp elbow tp ""))))
 
-;; 인라인 부속품 포함 배관:
-;; fp → [ia chain 중앙 배치] → tp
 (defun draw-with-inline (fp tp ia port-id / ang mid acc-end)
-  (setq ang (dom-ang fp tp)
-        mid (list (/ (+ (car fp) (car tp)) 2.0)
-                  (/ (+ (cadr fp) (cadr tp)) 2.0))
+  (setq ang     (dom-ang fp tp)
+        mid     (list (/ (+ (car fp) (car tp)) 2.0)
+                      (/ (+ (cadr fp) (cadr tp)) 2.0))
         acc-end (place-chain mid ang port-id ia))
   (draw-ortho fp mid)
   (draw-ortho acc-end tp))
 
-;; ============================================================
-;; 레이어
-;; ============================================================
-
-(defun init-layers ()
-  (foreach rec *MEDIA-LAYERS*
-    (if (null (tblsearch "LAYER" (nth 1 rec)))
-      (command "._-LAYER" "N" (nth 1 rec) "C" (itoa (nth 2 rec)) (nth 1 rec) ""))))
-
-(defun set-media-layer (media / rec)
-  (setq rec (assoc media *MEDIA-LAYERS*))
-  (setvar "CLAYER" (if rec (nth 1 rec) "0")))
-
-;; ============================================================
-;; 파이프 1개 처리
-;; ============================================================
-
 (defun process-pipe (pipe / pid fspec tspec fa ta ia tees media
-                          fres tres fp-base tp-base
-                          fp-ang tp-ang pipe-fp pipe-tp)
+                          fres tres fp-base tp-base fp-ang tp-ang
+                          pipe-fp pipe-tp)
   (setq pid   (nth 0 pipe)
         fspec (nth 1 pipe)
         tspec (nth 2 pipe)
@@ -356,7 +692,6 @@
 
   (set-media-layer media)
 
-  ;; FROM 쪽 체인 끝점 계산
   (setq fres    (resolve-spec fspec)
         fp-base (nth 0 fres)
         fp-ang  (nth 1 fres))
@@ -364,7 +699,6 @@
     (setq pipe-fp (place-chain fp-base fp-ang (nth 2 fspec) fa))
     (setq pipe-fp fp-base))
 
-  ;; TO 쪽 체인 끝점 계산
   (setq tres    (resolve-spec tspec)
         tp-base (nth 0 tres)
         tp-ang  (nth 1 tres))
@@ -372,26 +706,18 @@
     (setq pipe-tp (place-chain tp-base tp-ang (nth 2 tspec) ta))
     (setq pipe-tp tp-base))
 
-  ;; 배관선 + 인라인 부속품
   (if (and pipe-fp pipe-tp)
     (progn
       (if ia
         (draw-with-inline pipe-fp pipe-tp ia "IN1")
         (draw-ortho pipe-fp pipe-tp))
-
-      ;; TEE 등록 + 심볼
       (if tees
         (progn
           (register-tees pipe-fp pipe-tp tees)
           (foreach tid tees
             (draw-tee-sym (tee-pt tid)))))
-
       (princ (strcat "\n  배관: " pid " [" media "]")))
     (princ (strcat "\n  [건너뜀] " pid))))
-
-;; ============================================================
-;; 메인 루프
-;; ============================================================
 
 (defun place-pipes ()
   (foreach pipe *PIPES*
@@ -403,12 +729,24 @@
 
 (defun c:PID-STEP4 ()
   (setvar "CMDECHO" 0)
-  (setq *TEE-PTS* '()  *IN1-CACHE* '())
+  (setq *TEE-PTS* '()  *IN1-CACHE* '()  *ENAME-CACHE* '())
 
   (princ "\n[Step4] IN1 캐시 워밍...\n")
-  (warm-in1-cache)   ; UNDO BE 전에 호출
+  (warm-in1-cache)   ; UNDO BE 전 — 임시 삽입이 메인 UNDO에 포함 안 되도록
 
   (command "._UNDO" "BE")
+
+  (princ "\n[Step4] 공정 X 좌표 계산...\n")
+  (compute-proc-x)
+
+  (princ "\n[Step4] 구조물 배치...\n")
+  (place-structures)
+
+  (princ "\n[Step4] 외부 기계 배치...\n")
+  (place-machines)
+
+  (princ "\n[Step4] 내부 기계 배치...\n")
+  (place-internal-machines)
 
   (princ "\n[Step4] 레이어 초기화...\n")
   (init-layers)
@@ -426,5 +764,5 @@
   (princ "\n[Step4] 완료.\n")
   (princ))
 
-(princ "\nPID-STEP4 로드 완료. 'PID-STEP4' 실행하세요.\n")
+(princ "\nPID-STEP4 로드 완료. 'PID-STEP4' 입력 후 실행하세요.\n")
 (princ)
