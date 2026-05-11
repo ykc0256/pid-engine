@@ -591,6 +591,63 @@
     (process-pipe pipe)))
 
 ;; ============================================================
+;; 진단 커맨드 — PID-STEP2 실행 후 사용
+;; PID-STEP4 없이 블록/포트 속성 상태만 확인
+;; ============================================================
+
+(defun c:PID-CHECK (/ ok pt val bn off)
+  (setvar "CMDECHO" 0)
+  (setq *PROC-X* '()  *IN1-CACHE* '()  *ENAME-CACHE* '())
+  (princ "\n========== PID-CHECK 시작 ==========\n")
+
+  ;; 1. 공정 X 계산
+  (compute-proc-x)
+
+  ;; 2. 엔티티 캐시
+  (princ "\n--- [1] 엔티티 캐시 ---")
+  (build-ename-cache)
+
+  ;; 3. STR-A01 포트 확인
+  (princ "\n--- [2] STR-A01 포트 ---")
+  (setq pt (port-pt "STR-A01" "OUT1"))
+  (if pt
+    (princ (strcat "\n  STR-A01.OUT1 = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
+    (princ "\n  STR-A01.OUT1 = NOT FOUND"))
+  (setq val (port-ang "STR-A01" "OUT1"))
+  (princ (strcat "\n  STR-A01 OUT1_ANG = " (itoa val) " deg"))
+
+  (setq pt (port-pt "STR-A01" "IN1"))
+  (if pt
+    (princ (strcat "\n  STR-A01.IN1  = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
+    (princ "\n  STR-A01.IN1  = NOT FOUND"))
+
+  ;; 4. MCH-A03 포트 확인
+  (princ "\n--- [3] MCH-A03 포트 ---")
+  (setq pt (port-pt "MCH-A03" "IN1"))
+  (if pt
+    (princ (strcat "\n  MCH-A03.IN1  = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
+    (princ "\n  MCH-A03.IN1  = NOT FOUND"))
+  (setq val (port-ang "MCH-A03" "IN1"))
+  (princ (strcat "\n  MCH-A03 IN1_ANG  = " (itoa val) " deg"))
+
+  (setq pt (port-pt "MCH-A03" "OUT1"))
+  (if pt
+    (princ (strcat "\n  MCH-A03.OUT1 = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
+    (princ "\n  MCH-A03.OUT1 = NOT FOUND"))
+
+  ;; 5. 부속품 블록 IN1 오프셋 확인
+  (princ "\n--- [4] 부속품 IN1 오프셋 (원점 삽입 기준) ---")
+  (foreach bn '("P_VAV01" "P_VAV07" "FIT_FLNG")
+    (setq off (get-in1-offset bn))
+    (if off
+      (princ (strcat "\n  " bn " IN1 = (" (rtos (car off) 2 3) ", " (rtos (cadr off) 2 3) ")"))
+      (princ (strcat "\n  " bn " IN1 = FAILED (블록 없음?)"))))
+
+  (princ "\n\n========== PID-CHECK 완료 ==========\n")
+  (setvar "CMDECHO" 1)
+  (princ))
+
+;; ============================================================
 ;; 진입점
 ;; ============================================================
 
