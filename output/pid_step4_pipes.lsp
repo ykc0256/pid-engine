@@ -120,6 +120,7 @@
 (setq *ENAME-CACHE* '())
 (setq *PROC-X*     '())
 (setq *PIPE-IDX*   0)          ; 배관 순서 카운터 (수직 채널 계산용)
+(setq *INT-ENAMES* '())        ; 내부기계 ename 사전 (INSERT 직후 캡처)
 
 ;; ============================================================
 ;; 유틸리티
@@ -208,6 +209,10 @@
         ((= a 180) (list (- ox)  (- oy)))
         ((= a 270) (list oy      (- ox)))
         (T         (list ox      oy))))
+
+;; 각도(0/90/180/270)를 단위 방향벡터로 변환
+(defun dir-vec (ang)
+  (rot-off 1 0 ang))
 
 ;; pt에서 ang 방향으로 dist mm 이동한 점 (ang=nil이면 pt 그대로)
 (defun lead-pt (pt ang dist / dv)
@@ -352,7 +357,7 @@
                  (* (nth 5 mch) (+ *MCH-H* *MCH-V-GAP*)))))))
   result)
 
-(defun build-ename-cache (/ all-ss pt en str-en)
+(defun build-ename-cache (/ all-ss pt en str-en rec)
   (setq *ENAME-CACHE* '()
         all-ss (ssget "X" '((0 . "INSERT"))))
   (if (null all-ss)
@@ -371,14 +376,20 @@
            (princ (strcat "\n  [경고] " (nth 0 mch) " 캐싱 실패"))))
 
   (foreach imch *INT-MACHINES*
-    (setq str-en (cdr (assoc (nth 2 imch) *ENAME-CACHE*)))
-    (if str-en
+    (setq rec (assoc (nth 0 imch) *INT-ENAMES*))
+    (if rec
+      ;; INSERT 직후 캡처한 ename 재사용 (find-in-ss 불필요)
+      (setq *ENAME-CACHE* (cons rec *ENAME-CACHE*))
+      ;; fallback: ssget 탐색
       (progn
-        (setq pt (get-slot-pt str-en (nth 3 imch))
-              en (if pt (find-in-ss pt all-ss) nil))
-        (if en (setq *ENAME-CACHE* (cons (cons (nth 0 imch) en) *ENAME-CACHE*))
-               (princ (strcat "\n  [경고] " (nth 0 imch) " 캐싱 실패"))))
-      (princ (strcat "\n  [경고] " (nth 2 imch) " 구조물 미캐시"))))
+        (setq str-en (cdr (assoc (nth 2 imch) *ENAME-CACHE*)))
+        (if str-en
+          (progn
+            (setq pt (get-slot-pt str-en (nth 3 imch))
+                  en (if pt (find-in-ss pt all-ss) nil))
+            (if en (setq *ENAME-CACHE* (cons (cons (nth 0 imch) en) *ENAME-CACHE*))
+                   (princ (strcat "\n  [경고] " (nth 0 imch) " 캐싱 실패"))))
+          (princ (strcat "\n  [경고] " (nth 2 imch) " 구조물 미캐시"))))))
 
   (princ (strcat "\n  캐시 완료: " (itoa (length *ENAME-CACHE*)) "개")))
 
@@ -471,7 +482,8 @@
               (setq i (1+ i))))))))
   found)
 
-(defun place-internal-machines (/ mch-id ckey str-id slot-tag blk-en pt)
+(defun place-internal-machines (/ mch-id ckey str-id slot-tag blk-en pt en)
+  (setq *INT-ENAMES* '())
   (setvar "ATTREQ" 0)
   (foreach mch *INT-MACHINES*
     (setq mch-id   (nth 0 mch)
@@ -487,6 +499,9 @@
           (princ (strcat "\n  [경고] " str-id " 슬롯 '" slot-tag "' 없음 — " mch-id " 건너뜀"))
           (progn
             (command "._INSERT" ckey (list (car pt) (cadr pt)) 1 1 0)
+            ;; INSERT 직후 ename 캡처 → find-in-ss 의존성 제거
+            (setq en (entlast))
+            (setq *INT-ENAMES* (cons (cons mch-id en) *INT-ENAMES*))
             (command "._TEXT"
                      (list (+ (car pt) 2) (+ (cadr pt) 35))
                      *LBL-M* 0 mch-id)
@@ -683,7 +698,7 @@
 
 (defun c:PID-STEP4 ()
   (setvar "CMDECHO" 0)
-  (setq *TEE-PTS* '()  *IN1-CACHE* '()  *ENAME-CACHE* '()  *PIPE-IDX* 0)
+  (setq *TEE-PTS* '()  *IN1-CACHE* '()  *ENAME-CACHE* '()  *PIPE-IDX* 0  *INT-ENAMES* '())
 
   (princ "\n[Step4] IN1 캐시 워밍...\n")
   (warm-in1-cache)   ; UNDO BE 전 — 임시 삽입이 메인 UNDO에 포함 안 되도록
