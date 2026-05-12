@@ -262,25 +262,31 @@
 ;; 블록 IN1 오프셋 캐시
 ;; ============================================================
 
-(defun get-in1-offset (block-name / rec en in1-pt)
+(defun get-in1-offset (block-name / rec pre-en en in1-pt)
   (setq rec (assoc block-name *IN1-CACHE*))
   (if rec
     (cdr rec)
     (progn
       (setvar "ATTREQ" 0)
+      (setq pre-en (entlast))                        ; INSERT 직전 마지막 엔티티
       (command "._INSERT" block-name '(0.0 0.0) 1 1 0)
-      (setq en     (entlast)
+      ;; entlast = SEQEND (속성 블록) → entnext(pre-en) = 실제 INSERT 엔티티
+      (setq en     (if pre-en (entnext pre-en) (entlast))
             in1-pt (get-attr en "IN1" 10))
       (command "._U")
       (setvar "ATTREQ" 1)
-      (if (null in1-pt) (setq in1-pt '(0.0 0.0)))
+      (if in1-pt
+        (setq in1-pt (list (car in1-pt) (cadr in1-pt)))  ; Z 제거
+        (setq in1-pt '(0.0 0.0)))
       (setq *IN1-CACHE* (cons (cons block-name in1-pt) *IN1-CACHE*))
       in1-pt)))
 
-(defun warm-in1-cache ()
+(defun warm-in1-cache (/ bn off)
   (foreach bn '("P_VAV01" "P_VAV04" "P_VAV07" "P_VAV03"
                 "FIT_FLNG" "FIT_CONRDC_IN" "FIT_CONRDC_OUT")
-    (get-in1-offset bn))
+    (setq off (get-in1-offset bn))
+    (princ (strcat "\n  IN1[" bn "] = ("
+                   (rtos (car off) 2 3) ", " (rtos (cadr off) 2 3) ")")))
   (princ "\n  IN1 캐시 워밍 완료"))
 
 ;; ============================================================
@@ -299,15 +305,17 @@
       (setq rec row)))
   (if rec (nth 2 rec) ckey))
 
-(defun place-acc (block-name chain-pt ang / off roff ins en out1)
+(defun place-acc (block-name chain-pt ang / pre-en off roff ins en out1)
   (setq off  (get-in1-offset block-name)
         roff (rot-off (car off) (cadr off) ang)
         ins  (list (- (car chain-pt)  (car roff))
                    (- (cadr chain-pt) (cadr roff))))
   (setvar "ATTREQ" 0)
+  (setq pre-en (entlast))                            ; INSERT 직전 마지막 엔티티
   (command "._INSERT" block-name ins 1 1 ang)
   (setvar "ATTREQ" 1)
-  (setq en   (entlast)
+  ;; entlast = SEQEND → entnext(pre-en) = 실제 INSERT → OUT1 정상 읽기
+  (setq en   (if pre-en (entnext pre-en) (entlast))
         out1 (get-attr en "OUT1" 10))
   (if out1
     (list (car out1) (cadr out1))  ; Z 제거
@@ -534,6 +542,9 @@
           (progn
             ;; INSERT 직전 마지막 엔티티 기록 → entnext로 INSERT 엔티티 정확히 캡처
             (setq pre-en (entlast))
+            ;; 슬롯 좌표 출력 (배치 위치 진단용)
+            (princ (strcat "\n  [슬롯] " mch-id " → (" (rtos (car pt) 2 2)
+                           ", " (rtos (cadr pt) 2 2) ")"))
             (command "._INSERT" ckey (list (car pt) (cadr pt)) 1 1 0)
             ;; entlast는 SEQEND를 반환 — entnext(pre-en)이 실제 INSERT 엔티티
             (setq en (if pre-en (entnext pre-en) (entlast)))
