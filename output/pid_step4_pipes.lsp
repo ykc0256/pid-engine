@@ -90,17 +90,6 @@
   '(("FIT_CONRDC" "IN"  "FIT_CONRDC_IN")
     ("FIT_CONRDC" "OUT" "FIT_CONRDC_OUT")))
 
-;; ── 부속품 통과 거리 (블록 공간 기준, ang=0 기준 OUT1-IN1 벡터) ──
-;; OUT1 attribute 텍스트 위치 != 포트 기하 위치인 블록에 대한 수동 정의
-;; P_VAV01 진단: IN1=(-2.8125,0) → 대칭 가정 OUT1=(2.8125,0) → 통과거리=5.625
-(setq *BLOCK-ADV*
-  '(("P_VAV01"        5.625  0)
-    ("P_VAV07"        5.625  0)
-    ("P_VAV03"        5.625  0)
-    ("P_VAV04"        5.625  0)
-    ("FIT_FLNG"       5.0    0)   ; ← 실제 플랜지 길이로 수정 필요
-    ("FIT_CONRDC_IN"  10.0   0)   ; ← 실제 길이로 수정 필요
-    ("FIT_CONRDC_OUT" 10.0   0))) ; ← 실제 길이로 수정 필요
 
 ;; ── 포트 각도 오버라이드 (_ANG attribute 없는 블록용) ────────────
 ;; 형식: (block-name  port-id  angle-deg)
@@ -149,6 +138,7 @@
 ;; ── 전역 레지스트리 ──────────────────────────────────────────
 (setq *TEE-PTS*    '())
 (setq *IN1-CACHE*  '())
+(setq *OUT1-CACHE* '())
 (setq *ENAME-CACHE* '())
 (setq *PROC-X*     '())
 (setq *PIPE-IDX*   0)          ; 배관 순서 카운터 (수직 채널 계산용)
@@ -274,31 +264,29 @@
 ;; 블록 포트 오프셋 캐시 (블록 원점(0,0) 삽입 시 attribute 좌표 = 블록 공간 좌표)
 ;; ============================================================
 
-(defun get-in1-offset (block-name / rec pre-en en pt)
-  (setq rec (assoc block-name *IN1-CACHE*))
-  (if rec
-    (cdr rec)
-    (progn
-      (setvar "ATTREQ" 0)
-      (setq pre-en (entlast))
-      (command "._INSERT" block-name '(0.0 0.0) 1 1 0)
-      (setq en (if pre-en (entnext pre-en) (entlast))
-            pt (get-attr en "IN1" 10))
-      (command "._U")
-      (setvar "ATTREQ" 1)
-      (if pt
-        (setq pt (list (car pt) (cadr pt)))
-        (setq pt '(0.0 0.0)))
-      (setq *IN1-CACHE* (cons (cons block-name pt) *IN1-CACHE*))
-      pt)))
-
-(defun warm-in1-cache (/ bn pt)
+;; 블록을 (0,0)에 삽입해 IN1/OUT1 좌표를 한 번에 읽고 캐시
+(defun warm-port-cache (/ bn pre-en en i1 o1)
   (foreach bn '("P_VAV01" "P_VAV04" "P_VAV07" "P_VAV03"
                 "FIT_FLNG" "FIT_CONRDC_IN" "FIT_CONRDC_OUT")
-    (setq pt (get-in1-offset bn))
-    (princ (strcat "\n  IN1[" bn "] = ("
-                   (rtos (car pt) 2 3) "," (rtos (cadr pt) 2 3) ")")))
-  (princ "\n  IN1 캐시 완료"))
+    (setvar "ATTREQ" 0)
+    (setq pre-en (entlast))
+    (command "._INSERT" bn '(0.0 0.0) 1 1 0)
+    (setq en (if pre-en (entnext pre-en) (entlast))
+          i1 (get-attr en "IN1"  10)
+          o1 (get-attr en "OUT1" 10))
+    (command "._U")
+    (setvar "ATTREQ" 1)
+    (if i1 (setq i1 (list (car i1) (cadr i1))) (setq i1 '(0.0 0.0)))
+    (if o1 (setq o1 (list (car o1) (cadr o1))) (setq o1 i1))
+    (setq *IN1-CACHE*  (cons (cons bn i1) *IN1-CACHE*))
+    (setq *OUT1-CACHE* (cons (cons bn o1) *OUT1-CACHE*))
+    (princ (strcat "\n  " bn
+                   "  IN1=("  (rtos (car i1) 2 3) "," (rtos (cadr i1) 2 3) ")"
+                   "  OUT1=(" (rtos (car o1) 2 3) "," (rtos (cadr o1) 2 3) ")")))
+  (princ "\n  포트 캐시 완료"))
+
+(defun get-in1-offset  (bn / r) (if (setq r (assoc bn *IN1-CACHE*))  (cdr r) '(0.0 0.0)))
+(defun get-out1-offset (bn / r) (if (setq r (assoc bn *OUT1-CACHE*)) (cdr r) '(0.0 0.0)))
 
 ;; ============================================================
 ;; 부속품 체인
@@ -316,23 +304,20 @@
       (setq rec row)))
   (if rec (nth 2 rec) ckey))
 
-;; OUT1 attribute 텍스트 위치가 포트 기하 위치와 다르므로 읽지 않음.
-;; 대신 *BLOCK-ADV* 테이블(통과 거리)로 다음 체인점 계산:
-;;   ins = chain-pt - rot(IN1, ang)
-;;   next = ins + rot(adv, ang)
-(defun place-acc (block-name chain-pt ang / in1 rin adv-rec adv radv ins)
-  (setq in1     (get-in1-offset block-name)
-        adv-rec (assoc block-name *BLOCK-ADV*)
-        adv     (if adv-rec (list (nth 1 adv-rec) (nth 2 adv-rec)) '(0.0 0.0))
-        rin     (rot-off (car in1)  (cadr in1)  ang)
-        radv    (rot-off (car adv)  (cadr adv)  ang)
-        ins     (list (- (car chain-pt)  (car rin))
-                      (- (cadr chain-pt) (cadr rin))))
+;; ins      = chain-pt - rot(IN1, ang)   → IN1이 chain-pt에 닿도록 삽입
+;; next-pt  = ins      + rot(OUT1, ang)  → OUT1 세계 좌표가 다음 체인점
+(defun place-acc (block-name chain-pt ang / in1 out1 rin rout ins)
+  (setq in1  (get-in1-offset  block-name)
+        out1 (get-out1-offset block-name)
+        rin  (rot-off (car in1)  (cadr in1)  ang)
+        rout (rot-off (car out1) (cadr out1) ang)
+        ins  (list (- (car chain-pt)  (car rin))
+                   (- (cadr chain-pt) (cadr rin))))
   (setvar "ATTREQ" 0)
   (command "._INSERT" block-name ins 1 1 ang)
   (setvar "ATTREQ" 1)
-  (list (+ (car ins) (car radv))
-        (+ (cadr ins) (cadr radv))))
+  (list (+ (car ins) (car rout))
+        (+ (cadr ins) (cadr rout))))
 
 (defun place-chain (chain-pt ang port-id acc-list / pt)
   (setq pt chain-pt)
@@ -702,7 +687,7 @@
 
 (defun c:PID-DIAGN (/ pt ang off blk-en roff ins)
   (setvar "CMDECHO" 0)
-  (setq *PROC-X* '()  *IN1-CACHE* '()  *ENAME-CACHE* '()  *INT-ENAMES* '())
+  (setq *PROC-X* '()  *IN1-CACHE* '()  *OUT1-CACHE* '()  *ENAME-CACHE* '()  *INT-ENAMES* '())
   (princ "\n========== PID-DIAGN 시작 ==========\n")
 
   ;; [A] 부속품 IN1 오프셋 + BLOCK-ADV 통과거리
@@ -776,7 +761,7 @@
 
 (defun c:PID-CHECK (/ ok pt val bn off)
   (setvar "CMDECHO" 0)
-  (setq *PROC-X* '()  *IN1-CACHE* '()  *ENAME-CACHE* '())
+  (setq *PROC-X* '()  *IN1-CACHE* '()  *OUT1-CACHE* '()  *ENAME-CACHE* '())
   (princ "\n========== PID-CHECK 시작 ==========\n")
 
   ;; 1. 공정 X 계산
@@ -834,10 +819,10 @@
   (setvar "CMDECHO" 0)
   (setq *saved-osmode* (getvar "OSMODE"))
   (setvar "OSMODE" 0)
-  (setq *TEE-PTS* '()  *IN1-CACHE* '()  *ENAME-CACHE* '()  *PIPE-IDX* 0  *INT-ENAMES* '())
+  (setq *TEE-PTS* '()  *IN1-CACHE* '()  *OUT1-CACHE* '()  *ENAME-CACHE* '()  *PIPE-IDX* 0  *INT-ENAMES* '())
 
-  (princ "\n[Step4] IN1 캐시 워밍...\n")
-  (warm-in1-cache)   ; UNDO BE 전 — 임시 삽입이 메인 UNDO에 포함 안 되도록
+  (princ "\n[Step4] 포트 캐시 워밍...\n")
+  (warm-port-cache)  ; UNDO BE 전 — 임시 삽입이 메인 UNDO에 포함 안 되도록
 
   (command "._UNDO" "BE")
 
