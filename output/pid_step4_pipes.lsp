@@ -84,11 +84,31 @@
 ;; ── 포트 variant 치환 ────────────────────────────────────────
 (setq *PORT-LEAD*      60)      ; 체인 끝 이후 꺾임 전 최소 직관 (mm)
 (setq *ACC-GAP*      0.9375)  ; 포트↔부속품, 부속품↔부속품 이격 거리
-(setq *VERT-CH-STEP* 25)      ; 수직 채널 X 간격 — 구조물→기계 겹침 방지
+(setq *VERT-CH-STEP* 100)     ; 수직 채널 X 간격 — 구조물→기계 겹침 방지
 
 (setq *PORT-VARIANTS*
   '(("FIT_CONRDC" "IN"  "FIT_CONRDC_IN")
     ("FIT_CONRDC" "OUT" "FIT_CONRDC_OUT")))
+
+;; ── 포트 각도 오버라이드 (_ANG attribute 없는 블록용) ────────────
+;; 형식: (block-name  port-id  angle-deg)
+(setq *PORT-ANG-OVERRIDE*
+  '(("S_COND01"   "OUT1" 0)
+    ("S_COND01"   "IN1"  90)
+    ("M_PKA0102"  "IN1"  180)
+    ("M_PKA0102"  "OUT1" 0)
+    ("M_PKA0103"  "IN1"  180)
+    ("M_PKA0103"  "OUT1" 0)
+    ("M_VAV0101"  "IN1"  180)
+    ("M_VAV0101"  "OUT1" 0)
+    ("M_AEB0101"  "IN1"  270)
+    ("M_AEB0101"  "OUT1" 90)
+    ("M_BRX01"    "IN1"  180)
+    ("M_BRX01"    "OUT1" 0)
+    ("M_PMP0602"  "IN1"  180)
+    ("M_PMP0602"  "OUT1" 0)
+    ("M_PMP0601"  "IN1"  180)
+    ("M_PMP0601"  "OUT1" 0)))
 
 ;; ── 파이프 데이터 ─────────────────────────────────────────────
 ;; 형식: (pipe-id  from-spec  to-spec  fa  ta  ia  tees  media)
@@ -194,13 +214,22 @@
       (T (setq en (entnext en)))))
   result)
 
-(defun port-ang (ent-id port-id / en val)
+(defun port-ang (ent-id port-id / en blk-name rec val)
   (setq en (cdr (assoc ent-id *ENAME-CACHE*)))
-  (if en
+  (if (null en) 0
     (progn
-      (setq val (get-attr en (strcat port-id "_ANG") 1))
-      (if val (atoi val) 0))
-    0))
+      ;; 1. 오버라이드 테이블 우선 — _ANG attribute 없는 블록 대응
+      (setq blk-name (cdr (assoc 2 (entget en)))  rec nil)
+      (foreach row *PORT-ANG-OVERRIDE*
+        (if (and (equal (nth 0 row) blk-name)
+                 (equal (nth 1 row) port-id))
+          (setq rec row)))
+      (if rec
+        (nth 2 rec)
+        ;; 2. attribute에서 읽기 (값 있을 때만)
+        (progn
+          (setq val (get-attr en (strcat port-id "_ANG") 1))
+          (if val (atoi val) 0))))))
 
 (defun rot-off (ox oy ang / a)
   (setq a (if (numberp ang) ang (atoi ang)))
@@ -280,7 +309,9 @@
   (setvar "ATTREQ" 1)
   (setq en   (entlast)
         out1 (get-attr en "OUT1" 10))
-  (if out1 out1 chain-pt))
+  (if out1
+    (list (car out1) (cadr out1))  ; Z 제거
+    chain-pt))
 
 (defun place-chain (chain-pt ang port-id acc-list / pt)
   (setq pt chain-pt)
@@ -325,7 +356,10 @@
     (cond
       ((equal (cdr (assoc 0 ed)) "ATTRIB")
        (if (equal (strcase (cdr (assoc 2 ed))) (strcase tag))
-         (setq result (cdr (assoc 10 ed))))
+         (progn
+           (setq result (cdr (assoc 10 ed)))
+           ;; Z 제거 — 3D 좌표가 섞이면 배관에 대각선 발생
+           (if result (setq result (list (car result) (cadr result))))))
        (setq en (entnext en)))
       ((equal (cdr (assoc 0 ed)) "SEQEND")
        (setq en nil))
@@ -482,7 +516,7 @@
               (setq i (1+ i))))))))
   found)
 
-(defun place-internal-machines (/ mch-id ckey str-id slot-tag blk-en pt en)
+(defun place-internal-machines (/ mch-id ckey str-id slot-tag blk-en pt pre-en en)
   (setq *INT-ENAMES* '())
   (setvar "ATTREQ" 0)
   (foreach mch *INT-MACHINES*
@@ -498,9 +532,11 @@
         (if (null pt)
           (princ (strcat "\n  [경고] " str-id " 슬롯 '" slot-tag "' 없음 — " mch-id " 건너뜀"))
           (progn
+            ;; INSERT 직전 마지막 엔티티 기록 → entnext로 INSERT 엔티티 정확히 캡처
+            (setq pre-en (entlast))
             (command "._INSERT" ckey (list (car pt) (cadr pt)) 1 1 0)
-            ;; INSERT 직후 ename 캡처 → find-in-ss 의존성 제거
-            (setq en (entlast))
+            ;; entlast는 SEQEND를 반환 — entnext(pre-en)이 실제 INSERT 엔티티
+            (setq en (if pre-en (entnext pre-en) (entlast)))
             (setq *INT-ENAMES* (cons (cons mch-id en) *INT-ENAMES*))
             (command "._TEXT"
                      (list (+ (car pt) 2) (+ (cadr pt) 35))
