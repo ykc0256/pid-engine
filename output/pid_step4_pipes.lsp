@@ -264,25 +264,33 @@
 ;; 블록 포트 오프셋 캐시 (블록 원점(0,0) 삽입 시 attribute 좌표 = 블록 공간 좌표)
 ;; ============================================================
 
-;; 블록을 (0,0)에 삽입해 IN1/OUT1 좌표를 한 번에 읽고 캐시
-(defun warm-port-cache (/ bn pre-en en i1 o1)
+;; 블록을 (0,0)에 삽입해 IN1/OUT1 포트 오프셋을 캐시
+;; insert=visual-center 규칙에 따라: hw = (OUT1_raw - IN1_raw)/2
+;; → in1_offset = -hw, out1_offset = +hw  (attribute 텍스트 절대위치와 무관)
+(defun warm-port-cache (/ bn pre-en en i1r o1r hw in1 out1)
   (foreach bn '("P_VAV01" "P_VAV04" "P_VAV07" "P_VAV03"
                 "FIT_FLNG" "FIT_CONRDC_IN" "FIT_CONRDC_OUT")
     (setvar "ATTREQ" 0)
     (setq pre-en (entlast))
     (command "._INSERT" bn '(0.0 0.0) 1 1 0)
-    (setq en (if pre-en (entnext pre-en) (entlast))
-          i1 (get-attr en "IN1"  10)
-          o1 (get-attr en "OUT1" 10))
+    (setq en  (if pre-en (entnext pre-en) (entlast))
+          i1r (get-attr en "IN1"  10)
+          o1r (get-attr en "OUT1" 10))
     (command "._U")
     (setvar "ATTREQ" 1)
-    (if i1 (setq i1 (list (car i1) (cadr i1))) (setq i1 '(0.0 0.0)))
-    (if o1 (setq o1 (list (car o1) (cadr o1))) (setq o1 i1))
-    (setq *IN1-CACHE*  (cons (cons bn i1) *IN1-CACHE*))
-    (setq *OUT1-CACHE* (cons (cons bn o1) *OUT1-CACHE*))
+    ;; OUT1-IN1 상대 차이 = 정확한 포트 간 벡터 (절대 오프셋 오류 상쇄됨)
+    (if (and i1r o1r)
+      (progn
+        (setq hw   (list (* 0.5 (- (car o1r)  (car i1r)))
+                         (* 0.5 (- (cadr o1r) (cadr i1r))))
+              in1  (list (- (car hw)) (- (cadr hw)))
+              out1 hw))
+      (setq in1 '(0.0 0.0)  out1 '(0.0 0.0)))
+    (setq *IN1-CACHE*  (cons (cons bn in1)  *IN1-CACHE*))
+    (setq *OUT1-CACHE* (cons (cons bn out1) *OUT1-CACHE*))
     (princ (strcat "\n  " bn
-                   "  IN1=("  (rtos (car i1) 2 3) "," (rtos (cadr i1) 2 3) ")"
-                   "  OUT1=(" (rtos (car o1) 2 3) "," (rtos (cadr o1) 2 3) ")")))
+                   "  IN1=("  (rtos (car in1)  2 3) "," (rtos (cadr in1)  2 3) ")"
+                   "  OUT1=(" (rtos (car out1) 2 3) "," (rtos (cadr out1) 2 3) ")")))
   (princ "\n  포트 캐시 완료"))
 
 (defun get-in1-offset  (bn / r) (if (setq r (assoc bn *IN1-CACHE*))  (cdr r) '(0.0 0.0)))
