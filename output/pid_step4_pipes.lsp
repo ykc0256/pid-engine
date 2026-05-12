@@ -683,8 +683,79 @@
     (setq *PIPE-IDX* (1+ *PIPE-IDX*))))
 
 ;; ============================================================
-;; 진단 커맨드 — PID-STEP2 실행 후 사용
-;; PID-STEP4 없이 블록/포트 속성 상태만 확인
+;; PID-DIAGN — 구조 진단 커맨드 (PID-STEP4 실행 후 사용)
+;; 내부기계 슬롯 좌표, 부속품 IN1 오프셋, 포트 위치/각도 출력
+;; ============================================================
+
+(defun c:PID-DIAGN (/ pt ang off blk-en roff ins)
+  (setvar "CMDECHO" 0)
+  (setq *PROC-X* '()  *IN1-CACHE* '()  *ENAME-CACHE* '()  *INT-ENAMES* '())
+  (princ "\n========== PID-DIAGN 시작 ==========\n")
+
+  ;; [A] 부속품 IN1 오프셋 — (0,0)이면 entlast 버그 미해결
+  (princ "\n--- [A] 부속품 IN1 오프셋 (0,0이면 버그) ---")
+  (foreach bn '("P_VAV01" "P_VAV07" "FIT_FLNG")
+    (setq off (get-in1-offset bn))
+    (princ (strcat "\n  " bn " = (" (rtos (car off) 2 4) ", " (rtos (cadr off) 2 4) ")")))
+
+  ;; [B] 포트 위치 & 각도
+  (compute-proc-x)
+  (build-ename-cache)
+  (princ "\n--- [B] 포트 위치 & 각도 ---")
+  (foreach spec '(("STR-A01" "OUT1") ("STR-A02" "OUT1")
+                  ("MCH-A03" "IN1")  ("MCH-A05" "IN1"))
+    (setq pt  (port-pt  (nth 0 spec) (nth 1 spec))
+          ang (port-ang (nth 0 spec) (nth 1 spec)))
+    (if pt
+      (princ (strcat "\n  " (nth 0 spec) "." (nth 1 spec)
+                     " = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"
+                     "  ang=" (itoa ang) "deg"))
+      (princ (strcat "\n  " (nth 0 spec) "." (nth 1 spec) " = NOT FOUND"))))
+
+  ;; [C] 내부기계 슬롯 좌표 (구조물 블록에서 직접 읽음)
+  (princ "\n--- [C] 내부기계 슬롯 좌표 ---")
+  (foreach mch *INT-MACHINES*
+    (setq blk-en (find-str-ename (nth 2 mch))
+          pt     (if blk-en (get-slot-pt blk-en (nth 3 mch)) nil))
+    (if pt
+      (princ (strcat "\n  " (nth 0 mch) " [" (nth 3 mch) "]"
+                     " = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
+      (princ (strcat "\n  " (nth 0 mch) " [" (nth 3 mch) "] = NOT FOUND"))))
+
+  ;; [D] FROM 체인 삽입 위치 추적 (STR-A01 OUT1 기준)
+  (princ "\n--- [D] FROM 체인 삽입 위치 (STR-A01→ ang=0) ---")
+  (setq pt (port-pt "STR-A01" "OUT1")  ang 0)
+  (if pt
+    (foreach ckey '("P_VAV01" "FIT_FLNG")
+      (setq pt   (lead-pt pt ang *ACC-GAP*)
+            off  (get-in1-offset (resolve-blk ckey "OUT1"))
+            roff (rot-off (car off) (cadr off) ang)
+            ins  (list (- (car pt) (car roff)) (- (cadr pt) (cadr roff))))
+      (princ (strcat "\n  " ckey
+                     "  IN1목표=(" (rtos (car pt) 2 2) "," (rtos (cadr pt) 2 2) ")"
+                     "  삽입점=(" (rtos (car ins) 2 2) "," (rtos (cadr ins) 2 2) ")")))
+    (princ "\n  STR-A01.OUT1 없음"))
+
+  ;; [E] TO 체인 삽입 위치 추적 (MCH-A03 IN1 기준, ang=180)
+  (princ "\n--- [E] TO 체인 삽입 위치 (MCH-A03 IN1← ang=180) ---")
+  (setq pt (port-pt "MCH-A03" "IN1")  ang 180)
+  (if pt
+    (foreach ckey '("P_VAV07" "P_VAV01" "FIT_FLNG")
+      (setq pt   (lead-pt pt ang *ACC-GAP*)
+            off  (get-in1-offset (resolve-blk ckey "IN1"))
+            roff (rot-off (car off) (cadr off) ang)
+            ins  (list (- (car pt) (car roff)) (- (cadr pt) (cadr roff))))
+      (princ (strcat "\n  " ckey
+                     "  IN1목표=(" (rtos (car pt) 2 2) "," (rtos (cadr pt) 2 2) ")"
+                     "  삽입점=(" (rtos (car ins) 2 2) "," (rtos (cadr ins) 2 2) ")")))
+    (princ "\n  MCH-A03.IN1 없음"))
+
+  (princ "\n\n========== PID-DIAGN 완료 ==========\n")
+  (setvar "CMDECHO" 1)
+  (princ))
+
+;; ============================================================
+;; PID-CHECK — 기존 진단 커맨드
 ;; ============================================================
 
 (defun c:PID-CHECK (/ ok pt val bn off)
