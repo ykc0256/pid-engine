@@ -814,8 +814,10 @@
 ;; 진입점
 ;; ============================================================
 
-(defun c:PID-STEP4 ()
+(defun c:PID-STEP4 (/ *saved-osmode*)
   (setvar "CMDECHO" 0)
+  (setq *saved-osmode* (getvar "OSMODE"))
+  (setvar "OSMODE" 0)
   (setq *TEE-PTS* '()  *IN1-CACHE* '()  *ENAME-CACHE* '()  *PIPE-IDX* 0  *INT-ENAMES* '())
 
   (princ "\n[Step4] IN1 캐시 워밍...\n")
@@ -847,6 +849,7 @@
   (setvar "CLAYER" "0")
   (command "._ZOOM" "E")
   (command "._UNDO" "E")
+  (setvar "OSMODE" *saved-osmode*)
   (setvar "CMDECHO" 1)
   (princ "\n[Step4] 완료.\n")
   (princ))
