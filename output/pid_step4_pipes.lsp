@@ -685,129 +685,57 @@
 ;; 내부기계 슬롯 좌표, 부속품 IN1 오프셋, 포트 위치/각도 출력
 ;; ============================================================
 
-(defun c:PID-DIAGN (/ pt ang off blk-en roff ins)
+;;  PID-STEP4 실행 후 사용
+;;  [1] 노즐 좌표 + 첫 부속품 기대 IN1
+;;  [2] 도면 내 부속품 실제 삽입점 / IN1 / OUT1 세계좌표
+;;  → 두 값을 비교해 부속품이 노즐에 제대로 붙었는지 확인
+(defun c:PID-DIAGN (/ pt ang exp ss i en ed ins-pt i1 o1 cnt)
   (setvar "CMDECHO" 0)
-  (setq *PROC-X* '()  *IN1-CACHE* '()  *OUT1-CACHE* '()  *ENAME-CACHE* '()  *INT-ENAMES* '())
-  (princ "\n========== PID-DIAGN 시작 ==========\n")
-
-  ;; [A] 부속품 IN1 오프셋 + BLOCK-ADV 통과거리
-  (princ "\n--- [A] 부속품 IN1 오프셋 / *BLOCK-ADV* 통과거리 ---")
-  (foreach bn '("P_VAV01" "P_VAV07" "FIT_FLNG")
-    (setq i1  (get-in1-offset bn)
-          adv (assoc bn *BLOCK-ADV*))
-    (princ (strcat "\n  " bn
-                   "  IN1=(" (rtos (car i1) 2 4) "," (rtos (cadr i1) 2 4) ")"
-                   "  ADV=" (if adv (rtos (nth 1 adv) 2 3) "없음(0)"))))
-
-  ;; [B] 포트 위치 & 각도
+  (setq *PROC-X* '()  *ENAME-CACHE* '()  *INT-ENAMES* '())
   (compute-proc-x)
   (build-ename-cache)
-  (princ "\n--- [B] 포트 위치 & 각도 ---")
+  (princ "\n========== PID-DIAGN ==========")
+
+  ;; ── [1] 노즐 좌표 & 첫 부속품 기대 IN1 ──────────────────────
+  (princ "\n\n[1] 노즐 위치 & 첫 부속품 기대 IN1  (노즐 + ACC-GAP 방향)")
   (foreach spec '(("STR-A01" "OUT1") ("STR-A02" "OUT1")
                   ("MCH-A03" "IN1")  ("MCH-A05" "IN1"))
     (setq pt  (port-pt  (nth 0 spec) (nth 1 spec))
           ang (port-ang (nth 0 spec) (nth 1 spec)))
     (if pt
-      (princ (strcat "\n  " (nth 0 spec) "." (nth 1 spec)
-                     " = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"
-                     "  ang=" (itoa ang) "deg"))
-      (princ (strcat "\n  " (nth 0 spec) "." (nth 1 spec) " = NOT FOUND"))))
+      (progn
+        (setq exp (lead-pt pt ang *ACC-GAP*))
+        (princ (strcat
+          "\n  " (nth 0 spec) "." (nth 1 spec)
+          "  노즐=(" (rtos (car pt)  2 2) "," (rtos (cadr pt)  2 2) ")"
+          "  ang=" (itoa ang) "°"
+          "  → 기대IN1=(" (rtos (car exp) 2 2) "," (rtos (cadr exp) 2 2) ")")))
+      (princ (strcat "\n  " (nth 0 spec) "." (nth 1 spec) "  → 캐시없음"))))
 
-  ;; [C] 내부기계 슬롯 좌표 (구조물 블록에서 직접 읽음)
-  (princ "\n--- [C] 내부기계 슬롯 좌표 ---")
-  (foreach mch *INT-MACHINES*
-    (setq blk-en (find-str-ename (nth 2 mch))
-          pt     (if blk-en (get-slot-pt blk-en (nth 3 mch)) nil))
-    (if pt
-      (princ (strcat "\n  " (nth 0 mch) " [" (nth 3 mch) "]"
-                     " = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
-      (princ (strcat "\n  " (nth 0 mch) " [" (nth 3 mch) "] = NOT FOUND"))))
-
-  ;; [D] FROM 체인 삽입 위치 추적 (STR-A01 OUT1 기준)
-  (princ "\n--- [D] FROM 체인 삽입 위치 (STR-A01→ ang=0) ---")
-  (setq pt (port-pt "STR-A01" "OUT1")  ang 0)
-  (if pt
-    (foreach ckey '("P_VAV01" "FIT_FLNG")
-      (setq pt   (lead-pt pt ang *ACC-GAP*)
-            off  (get-in1-offset (resolve-blk ckey "OUT1"))
-            roff (rot-off (car off) (cadr off) ang)
-            ins  (list (- (car pt) (car roff)) (- (cadr pt) (cadr roff))))
-      (princ (strcat "\n  " ckey
-                     "  IN1목표=(" (rtos (car pt) 2 2) "," (rtos (cadr pt) 2 2) ")"
-                     "  삽입점=(" (rtos (car ins) 2 2) "," (rtos (cadr ins) 2 2) ")")))
-    (princ "\n  STR-A01.OUT1 없음"))
-
-  ;; [E] TO 체인 삽입 위치 추적 (MCH-A03 IN1 기준, ang=180)
-  (princ "\n--- [E] TO 체인 삽입 위치 (MCH-A03 IN1← ang=180) ---")
-  (setq pt (port-pt "MCH-A03" "IN1")  ang 180)
-  (if pt
-    (foreach ckey '("P_VAV07" "P_VAV01" "FIT_FLNG")
-      (setq pt   (lead-pt pt ang *ACC-GAP*)
-            off  (get-in1-offset (resolve-blk ckey "IN1"))
-            roff (rot-off (car off) (cadr off) ang)
-            ins  (list (- (car pt) (car roff)) (- (cadr pt) (cadr roff))))
-      (princ (strcat "\n  " ckey
-                     "  IN1목표=(" (rtos (car pt) 2 2) "," (rtos (cadr pt) 2 2) ")"
-                     "  삽입점=(" (rtos (car ins) 2 2) "," (rtos (cadr ins) 2 2) ")")))
-    (princ "\n  MCH-A03.IN1 없음"))
-
-  (princ "\n\n========== PID-DIAGN 완료 ==========\n")
-  (setvar "CMDECHO" 1)
-  (princ))
-
-;; ============================================================
-;; PID-CHECK — 기존 진단 커맨드
-;; ============================================================
-
-(defun c:PID-CHECK (/ ok pt val bn off)
-  (setvar "CMDECHO" 0)
-  (setq *PROC-X* '()  *IN1-CACHE* '()  *OUT1-CACHE* '()  *ENAME-CACHE* '())
-  (princ "\n========== PID-CHECK 시작 ==========\n")
-
-  ;; 1. 공정 X 계산
-  (compute-proc-x)
-
-  ;; 2. 엔티티 캐시
-  (princ "\n--- [1] 엔티티 캐시 ---")
-  (build-ename-cache)
-
-  ;; 3. STR-A01 포트 확인
-  (princ "\n--- [2] STR-A01 포트 ---")
-  (setq pt (port-pt "STR-A01" "OUT1"))
-  (if pt
-    (princ (strcat "\n  STR-A01.OUT1 = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
-    (princ "\n  STR-A01.OUT1 = NOT FOUND"))
-  (setq val (port-ang "STR-A01" "OUT1"))
-  (princ (strcat "\n  STR-A01 OUT1_ANG = " (itoa val) " deg"))
-
-  (setq pt (port-pt "STR-A01" "IN1"))
-  (if pt
-    (princ (strcat "\n  STR-A01.IN1  = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
-    (princ "\n  STR-A01.IN1  = NOT FOUND"))
-
-  ;; 4. MCH-A03 포트 확인
-  (princ "\n--- [3] MCH-A03 포트 ---")
-  (setq pt (port-pt "MCH-A03" "IN1"))
-  (if pt
-    (princ (strcat "\n  MCH-A03.IN1  = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
-    (princ "\n  MCH-A03.IN1  = NOT FOUND"))
-  (setq val (port-ang "MCH-A03" "IN1"))
-  (princ (strcat "\n  MCH-A03 IN1_ANG  = " (itoa val) " deg"))
-
-  (setq pt (port-pt "MCH-A03" "OUT1"))
-  (if pt
-    (princ (strcat "\n  MCH-A03.OUT1 = (" (rtos (car pt) 2 2) ", " (rtos (cadr pt) 2 2) ")"))
-    (princ "\n  MCH-A03.OUT1 = NOT FOUND"))
-
-  ;; 5. 부속품 블록 IN1 오프셋 확인
-  (princ "\n--- [4] 부속품 IN1 오프셋 (원점 삽입 기준) ---")
+  ;; ── [2] 도면 내 부속품 실제 위치 ────────────────────────────
+  (princ "\n\n[2] 도면 내 부속품  삽입점 / IN1 / OUT1  (세계좌표)")
   (foreach bn '("P_VAV01" "P_VAV07" "FIT_FLNG")
-    (setq off (get-in1-offset bn))
-    (if off
-      (princ (strcat "\n  " bn " IN1 = (" (rtos (car off) 2 3) ", " (rtos (cadr off) 2 3) ")"))
-      (princ (strcat "\n  " bn " IN1 = FAILED (블록 없음?)"))))
+    (setq ss  (ssget "X" (list (cons 0 "INSERT") (cons 2 bn)))
+          cnt (if ss (sslength ss) 0))
+    (princ (strcat "\n  [" bn "]  " (itoa cnt) "개"))
+    (setq i 0)
+    (while (and ss (< i cnt))
+      (setq en     (ssname ss i)
+            ed     (entget en)
+            ins-pt (cdr (assoc 10 ed))
+            i1     (get-attr en "IN1"  10)
+            o1     (get-attr en "OUT1" 10))
+      (if ins-pt (setq ins-pt (list (car ins-pt) (cadr ins-pt))))
+      (if i1     (setq i1     (list (car i1)     (cadr i1))))
+      (if o1     (setq o1     (list (car o1)     (cadr o1))))
+      (princ (strcat
+        "\n    #" (itoa (1+ i))
+        "  삽입점=(" (rtos (car ins-pt) 2 2) "," (rtos (cadr ins-pt) 2 2) ")"
+        "  IN1=("  (if i1 (strcat (rtos (car i1)  2 2) "," (rtos (cadr i1)  2 2)) "없음") ")"
+        "  OUT1=(" (if o1 (strcat (rtos (car o1)  2 2) "," (rtos (cadr o1)  2 2)) "없음") ")"))
+      (setq i (1+ i))))
 
-  (princ "\n\n========== PID-CHECK 완료 ==========\n")
+  (princ "\n\n========== 완료 ==========\n")
   (setvar "CMDECHO" 1)
   (princ))
 
