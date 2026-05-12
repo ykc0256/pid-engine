@@ -82,7 +82,9 @@
     ("chemical" "PID-CHEMICAL" 6)))
 
 ;; ── 포트 variant 치환 ────────────────────────────────────────
-(setq *PORT-LEAD* 60)       ; 체인 끝 이후 꺾임 전 최소 직관 (mm)
+(setq *PORT-LEAD*      60)      ; 체인 끝 이후 꺾임 전 최소 직관 (mm)
+(setq *ACC-GAP*      0.9375)  ; 포트↔부속품, 부속품↔부속품 이격 거리
+(setq *VERT-CH-STEP* 25)      ; 수직 채널 X 간격 — 구조물→기계 겹침 방지
 
 (setq *PORT-VARIANTS*
   '(("FIT_CONRDC" "IN"  "FIT_CONRDC_IN")
@@ -117,6 +119,7 @@
 (setq *IN1-CACHE*  '())
 (setq *ENAME-CACHE* '())
 (setq *PROC-X*     '())
+(setq *PIPE-IDX*   0)          ; 배관 순서 카운터 (수직 채널 계산용)
 
 ;; ============================================================
 ;; 유틸리티
@@ -277,6 +280,7 @@
 (defun place-chain (chain-pt ang port-id acc-list / pt)
   (setq pt chain-pt)
   (foreach ckey acc-list
+    (setq pt (lead-pt pt ang *ACC-GAP*))            ; 이격 거리 확보
     (setq pt (place-acc (resolve-blk ckey port-id) pt ang)))
   pt)
 
@@ -518,6 +522,27 @@
      (setq elbow (list (car tp) (cadr fp)))
      (command "._PLINE" fp elbow tp ""))))
 
+;; 구조물→기계 전용: 수직(V) 먼저, 수평(H) 나중
+;; *PIPE-IDX* 기반 채널 오프셋으로 같은 구조물 열에서 나오는 배관 겹침 방지
+(defun draw-ortho-str-mch (fp tp / dx dy chan-x)
+  (setq dx     (abs (- (car  tp) (car  fp)))
+        dy     (abs (- (cadr tp) (cadr fp)))
+        chan-x (+ (car fp) (* *PIPE-IDX* *VERT-CH-STEP*)))
+  (cond
+    ((and (< dx 0.5) (< dy 0.5)) nil)
+    ((< dx 0.5) (command "._LINE" fp tp ""))
+    ((< dy 0.5) (command "._LINE" fp tp ""))
+    (T
+     (if (< (abs (- chan-x (car fp))) 0.5)
+       ;; idx=0: 바로 V→H
+       (command "._PLINE" fp (list (car fp) (cadr tp)) tp "")
+       ;; idx>0: 짧은 H 이동(채널 확보) → V → H
+       (command "._PLINE"
+         fp
+         (list chan-x (cadr fp))
+         (list chan-x (cadr tp))
+         tp "")))))
+
 (defun draw-with-inline (fp tp ia port-id / ang mid acc-end)
   (setq ang     (dom-ang fp tp)
         mid     (list (/ (+ (car fp) (car tp)) 2.0)
@@ -528,15 +553,16 @@
 
 (defun process-pipe (pipe / pid fspec tspec fa ta ia tees media
                           fres tres fp-base tp-base fp-ang tp-ang
-                          pipe-fp pipe-tp fp-outer tp-outer)
-  (setq pid   (nth 0 pipe)
-        fspec (nth 1 pipe)
-        tspec (nth 2 pipe)
-        fa    (nth 3 pipe)
-        ta    (nth 4 pipe)
-        ia    (nth 5 pipe)
-        tees  (nth 6 pipe)
-        media (nth 7 pipe))
+                          pipe-fp pipe-tp fp-outer tp-outer str-to-mch)
+  (setq pid        (nth 0 pipe)
+        fspec      (nth 1 pipe)
+        tspec      (nth 2 pipe)
+        fa         (nth 3 pipe)
+        ta         (nth 4 pipe)
+        ia         (nth 5 pipe)
+        tees       (nth 6 pipe)
+        media      (nth 7 pipe)
+        str-to-mch (and (equal (nth 0 fspec) "S") (equal (nth 0 tspec) "M")))
 
   (set-media-layer media)
 
@@ -574,7 +600,9 @@
       ;; 메인 배관 (fp-outer ↔ tp-outer)
       (if ia
         (draw-with-inline fp-outer tp-outer ia "IN1")
-        (draw-ortho fp-outer tp-outer))
+        (if str-to-mch
+          (draw-ortho-str-mch fp-outer tp-outer)  ; 구조물→기계: V 먼저
+          (draw-ortho fp-outer tp-outer)))
 
       ;; TEE는 메인 구간 기준으로 등록
       (if tees
@@ -587,8 +615,10 @@
     (princ (strcat "\n  [건너뜀] " pid))))
 
 (defun place-pipes ()
+  (setq *PIPE-IDX* 0)
   (foreach pipe *PIPES*
-    (process-pipe pipe)))
+    (process-pipe pipe)
+    (setq *PIPE-IDX* (1+ *PIPE-IDX*))))
 
 ;; ============================================================
 ;; 진단 커맨드 — PID-STEP2 실행 후 사용
@@ -653,7 +683,7 @@
 
 (defun c:PID-STEP4 ()
   (setvar "CMDECHO" 0)
-  (setq *TEE-PTS* '()  *IN1-CACHE* '()  *ENAME-CACHE* '())
+  (setq *TEE-PTS* '()  *IN1-CACHE* '()  *ENAME-CACHE* '()  *PIPE-IDX* 0)
 
   (princ "\n[Step4] IN1 캐시 워밍...\n")
   (warm-in1-cache)   ; UNDO BE 전 — 임시 삽입이 메인 UNDO에 포함 안 되도록
